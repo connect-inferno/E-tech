@@ -105,14 +105,14 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="no-scrollbar">
+    <html lang="en" className="no-scrollbar" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="bg-luxury-bg text-luxury-text-primary overflow-x-hidden antialiased">
+      <body className="bg-luxury-bg text-luxury-text-primary overflow-x-hidden antialiased" suppressHydrationWarning>
         <UnderConstructionModal />
         <SmoothScrollProvider>
           {children}
