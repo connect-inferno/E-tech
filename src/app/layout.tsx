@@ -4,7 +4,7 @@ import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { siteContent } from "@/data/siteContent";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.etechelevators.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.e-techelevators.com'),
   title: {
     default: siteContent.metadata.title,
     template: `%s | ${siteContent.company.name}`,
@@ -77,9 +77,9 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": siteContent.company.name,
-    "image": "https://www.etechelevators.com/og-image.jpg",
-    "@id": "https://www.etechelevators.com",
-    "url": "https://www.etechelevators.com",
+    "image": "https://www.e-techelevators.com/og-image.jpg",
+    "@id": "https://www.e-techelevators.com",
+    "url": "https://www.e-techelevators.com",
     "telephone": siteContent.contact.info.phone,
     "address": {
       "@type": "PostalAddress",

@@ -341,7 +341,7 @@ export const siteContent = {
     info: {
       address: "E Tech Elevators, Corporate Towers, Level 14, MG Road, Bangalore, India",
       phone: "+91 (80) 4900 1200",
-      email: "engineering@etechelevators.com",
+      email: "engineering@e-techelevators.com",
       hours: "Mon - Sat: 9:00 AM - 6:30 PM",
       emergencyPhone: "+91 99000 88000 (24/7 Helpline)",
     },
