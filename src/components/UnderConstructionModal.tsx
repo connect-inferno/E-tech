@@ -14,7 +14,7 @@ export default function UnderConstructionModal() {
     const hasSeen = sessionStorage.getItem("hasSeenUnderConstruction");
     if (!hasSeen) {
       // Small delay for cinematic effect
-      const timer = setTimeout(() => setIsOpen(true), 800);
+      const timer = setTimeout(() => setIsOpen(true), 100);
       return () => clearTimeout(timer);
     }
   }, []);
