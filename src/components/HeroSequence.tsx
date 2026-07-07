@@ -109,37 +109,68 @@ export default function HeroSequence() {
       if (!isComponentMounted) return;
 
       totalLoadedCount++;
-      const progress = Math.round((totalLoadedCount / TOTAL_FRAMES) * 100);
-      setLoadProgress(progress);
 
       if (isCritical) {
         criticalLoadedCount++;
+        const progress = Math.round((criticalLoadedCount / criticalFrameCount) * 100);
+        setLoadProgress(progress);
+        
         if (criticalLoadedCount === criticalFrameCount) {
           // Trigger initial canvas resize and first frame draw immediately
           handleResize();
           drawFrame(1);
+          
+          setIsLoaded(true);
+          // Setup GSAP animation early so user doesn't wait for 240 frames
+          setupScrollAnimation();
+          
+          // Start loading the rest of the frames in chunks to prevent network throttling on mobile
+          loadRemainingFramesInChunks(criticalFrameCount + 1);
         }
-      }
-
-      if (totalLoadedCount === TOTAL_FRAMES) {
-        setIsLoaded(true);
-        // Setup GSAP animation scroll link once all frames are in cache memory
-        setupScrollAnimation();
       }
     };
 
-    // Begin background preloading queue
-    for (let i = 1; i <= TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.src = getFrameUrl(i);
-      const isCritical = i <= criticalFrameCount;
-      img.onload = () => onFrameLoaded(i, isCritical);
-      img.onerror = () => {
-        console.warn(`Failed loading frame: ${i}. Proceeding with fallback progress.`);
-        onFrameLoaded(i, isCritical); // Prevent loader from freezing
-      };
-      images.push(img);
+    const loadFrame = (i: number): Promise<void> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const isCritical = i <= criticalFrameCount;
+        
+        img.onload = () => {
+          onFrameLoaded(i, isCritical);
+          resolve();
+        };
+        img.onerror = () => {
+          console.warn(`Failed loading frame: ${i}. Proceeding with fallback progress.`);
+          onFrameLoaded(i, isCritical);
+          resolve();
+        };
+        
+        img.src = getFrameUrl(i);
+        images[i - 1] = img;
+      });
+    };
+
+    // Pre-allocate array
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      images.push(null as any);
     }
+
+    // Start critical frames loading
+    for (let i = 1; i <= criticalFrameCount; i++) {
+      loadFrame(i);
+    }
+
+    const loadRemainingFramesInChunks = async (startIndex: number) => {
+      const CHUNK_SIZE = 4; // Load 4 frames at a time to be safe on iOS
+      for (let i = startIndex; i <= TOTAL_FRAMES; i += CHUNK_SIZE) {
+        if (!isComponentMounted) break;
+        const promises = [];
+        for (let j = 0; j < CHUNK_SIZE && i + j <= TOTAL_FRAMES; j++) {
+          promises.push(loadFrame(i + j));
+        }
+        await Promise.all(promises);
+      }
+    };
 
     function setupScrollAnimation() {
       if (!containerRef.current || !canvasRef.current) return;
