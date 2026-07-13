@@ -30,7 +30,7 @@ export default function HeroSequence() {
 
   // Helper function to format image filename path
   const getFrameUrl = (frameNumber: number) => {
-    return `/images/elevator-sequence/${frameNumber}.jpg`;
+    return `/images/elevator_frames_240_new/${frameNumber}.jpg`;
   };
 
   // Helper to wrap "Safety" and "Trust" in accent-colored spans
