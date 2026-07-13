@@ -14,16 +14,14 @@ if (typeof window !== "undefined") {
 
 // Unsplash images
 const PRODUCT_IMAGES: Record<string, string> = {
-  passenger: "https://images.unsplash.com/photo-1545459720-aac33910c662?q=80&w=600",
-  capsule: "https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?q=80&w=600",
-  glass: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=600",
-  home: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600",
-  hospital: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=600",
-  freight: "https://images.unsplash.com/photo-1530124560677-bdaea029fea0?q=80&w=600",
-  hydraulic: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=600",
-  mrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600",
-  automobile: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=600",
-  escalators: "https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=600",
+  passenger: "/images/passenger_elavtor__1.jpg",
+  capsule: "/images/capsule_elevator__2.jpg",
+  glass: "/images/glass_elevators_2.jpg",
+  home: "/images/home_elevators_2.jpg",
+  hospital: "/images/hospitle_elevator__2.jpg",
+  hydraulic: "/images/hydraulic_elevator_in_building_1.jpg",
+  mrl: "/images/MRL_elevator_in_building__2.jpg",
+  escalators: "/images/escalator.jpg",
 };
 
 // Customizer options
@@ -349,11 +347,10 @@ export default function ProductsPage() {
                       <button
                         key={opt.id}
                         onClick={() => setPanelFinish(opt)}
-                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${
-                          panelFinish.id === opt.id
-                            ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
-                            : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
-                        }`}
+                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${panelFinish.id === opt.id
+                          ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
+                          : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
+                          }`}
                       >
                         <span
                           className="w-4 h-4 rounded-full border border-white/10 shrink-0"
@@ -375,11 +372,10 @@ export default function ProductsPage() {
                       <button
                         key={opt.id}
                         onClick={() => setFloorMat(opt)}
-                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${
-                          floorMat.id === opt.id
-                            ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
-                            : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
-                        }`}
+                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${floorMat.id === opt.id
+                          ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
+                          : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
+                          }`}
                       >
                         <span
                           className="w-4 h-4 rounded-full border border-white/10 shrink-0"
@@ -401,11 +397,10 @@ export default function ProductsPage() {
                       <button
                         key={opt.id}
                         onClick={() => setCeilingLight(opt)}
-                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${
-                          ceilingLight.id === opt.id
-                            ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
-                            : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
-                        }`}
+                        className={`flex items-center gap-3 p-3 text-left border rounded-sm transition-all focus:outline-none ${ceilingLight.id === opt.id
+                          ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
+                          : "border-white/5 hover:border-white/20 text-luxury-text-secondary"
+                          }`}
                       >
                         <span
                           className="w-4 h-4 rounded-sm border border-white/10 shrink-0 flex items-center justify-center bg-zinc-800"
@@ -492,9 +487,8 @@ export default function ProductsPage() {
                   <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.2),rgba(0,0,0,0.65))]" />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span
-                      className={`text-[8px] uppercase tracking-widest ${
-                        floorMat.id === "marble-white" ? "text-neutral-600" : "text-luxury-text-secondary"
-                      } font-medium`}
+                      className={`text-[8px] uppercase tracking-widest ${floorMat.id === "marble-white" ? "text-neutral-600" : "text-luxury-text-secondary"
+                        } font-medium`}
                     >
                       FL: {floorMat.name}
                     </span>

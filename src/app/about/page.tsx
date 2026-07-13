@@ -135,6 +135,79 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Leadership Team Section */}
+      <section className="py-20 md:py-28 px-6 md:px-12 bg-luxury-card/10 border-b border-white/5">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <div className="text-center space-y-4 max-w-xl mx-auto">
+            <span className="text-xs uppercase tracking-[0.4em] text-luxury-accent font-semibold">Leadership</span>
+            <h2 className="text-3xl md:text-4xl font-heading font-light tracking-tight text-luxury-text-primary">
+              Management Team
+            </h2>
+            <div className="w-16 h-[1px] bg-luxury-accent/30 mx-auto mt-4" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+            {/* Chairman */}
+            <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
+              <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
+                <img
+                  src="/images/akash.png"
+                  alt="Akash Dokhale"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div className="w-full md:w-[55%] flex flex-col justify-center p-6 md:p-8 space-y-3 text-center md:text-left">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                    Akash Dokhale
+                  </h3>
+                  <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                    Chairman & Managing Director
+                  </p>
+                </div>
+                <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                  E-Tech Elevator, Pune, Maharashtra.
+                </p>
+                <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                  Overseeing E-Tech's strategic vision, regional expansions, and commitment to absolute safety standards across Maharashtra.
+                </p>
+              </div>
+            </div>
+
+            {/* CEO */}
+            <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
+              <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
+                <img
+                  src="/images/vivek.png"
+                  alt="Vivek Borkar"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div className="w-full md:w-[55%] flex flex-col justify-center p-6 md:p-8 space-y-3 text-center md:text-left">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                    Vivek Borkar
+                  </h3>
+                  <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                    Chief Executive Officer (CEO)
+                  </p>
+                </div>
+                <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                  E-Tech Elevator, Pune, Maharashtra.
+                </p>
+                <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                  Driving operational excellence, engineering innovation, smart IoT integration, and premium AMC services.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Editorial Narrative & Stats */}
       <section className="py-20 md:py-28 px-6 md:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
@@ -143,8 +216,8 @@ export default function AboutPage() {
               {siteContent.about.storyTitle}
             </h2>
             <div className="space-y-6 text-sm md:text-base font-light text-luxury-text-secondary leading-relaxed">
-              <p>{siteContent.about.storyParagraph1}</p>
-              <p>{siteContent.about.storyParagraph2}</p>
+              <p className="whitespace-pre-line">{siteContent.about.storyParagraph1}</p>
+              <p className="whitespace-pre-line">{siteContent.about.storyParagraph2}</p>
               <p>
                 Our structural layouts are coordinated directly with architects and interior design houses. From invisible home elevator hoistways to towering commercial capsules, we match our structural steel builds with tailored luxury design components.
               </p>

@@ -54,7 +54,7 @@ export const siteContent = {
       { name: "Products", href: "/products" },
       { name: "Services", href: "/services" },
       { name: "Projects", href: "/projects" },
-      { name: "Contact", href: "/#contact" },
+      { name: "Contact", href: "/contact" },
     ],
   },
   hero: {
@@ -94,13 +94,13 @@ export const siteContent = {
   about: {
     title: "The Standard of Architectural Elevation",
     subtitle: "About Us",
-    storyTitle: "Engineering Luxury Motion",
-    storyParagraph1: "At E Tech Elevators, we define the future of architectural vertical transitions. Driven by an uncompromising commitment to safety, silence, and sophisticated engineering, we craft vertical pathways that integrate seamlessly into the world's most luxurious residential, commercial, and clinical spaces.",
-    storyParagraph2: "Our elevators are not mere utility devices; they are architectural statements. By blending advanced heavy engineering with premium materials like brushed bronze, textured leather, and polished marble, we create elevators that elevate experience itself.",
+    storyTitle: "A Message from Our Leadership",
+    storyParagraph1: "Dear Valued Clients, Partners,\n\nIt is with immense pride and gratitude that I welcome you to E-Tech Elevator – a company built on the foundation of trust, safety, and engineering excellence. Over the past two-and-a-half decades, we have grown from a local service provider to one of Maharashtra's most respected elevator companies, serving thousands of residential, commercial, and industrial clients across the region.",
+    storyParagraph2: "Our journey has been driven by one core belief: that every person who steps into an elevator deserves the highest standard of safety and reliability. This belief has shaped every decision we make – from the spare parts we use to the engineers we train and the service protocols we follow.",
     missionTitle: "Our Mission",
-    missionText: "To design and deliver vertical mobility systems that guarantee absolute safety, unparalleled riding comfort, and striking aesthetic beauty, setting the new benchmark for luxury elevators worldwide.",
+    missionText: "To be India's most trusted elevator service company – delivering world-class safety, reliability, and innovation to every building we serve.",
     visionTitle: "Our Vision",
-    visionText: "To bridge the gap between engineering complexity and aesthetic simplicity, creating vertical journeys that feel weightless, architectural, and timeless.",
+    visionText: "E-Tech Elevator will expand its operations across Maharashtra, invest in smart elevator monitoring technology, and strengthen our AMC ecosystem with digital tools that empower our clients with real-time service visibility.",
     stats: [
       { value: "500+", number: 500, suffix: "+", label: "Global Installations" },
       { value: "0", number: 0, suffix: " incidents", label: "Safety Records Unmatched" }, // will animate
@@ -152,14 +152,7 @@ export const siteContent = {
         features: ["Accurate deck-leveling technology", "Hygienic stainless steel walls", "Priority emergency response routing"],
         image: "hospital"
       },
-      {
-        id: "freight",
-        title: "Freight Elevators",
-        description: "Heavy-duty cargo systems engineered to withstand structural impacts.",
-        longDescription: "Built with reinforced steel cabins, high load capacity motors, and structural floor plating to support industrial transport.",
-        features: ["High load capacities (up to 10 tons)", "Micro-stop safety brakes", "Anti-skid steel floors"],
-        image: "freight"
-      },
+
       {
         id: "hydraulic",
         title: "Hydraulic Elevators",
@@ -176,14 +169,7 @@ export const siteContent = {
         features: ["Eco-friendly energy consumption", "No separate machine room required", "Sleek gearless traction design"],
         image: "mrl"
       },
-      {
-        id: "automobile",
-        title: "Automobile Elevators",
-        description: "Heavy-duty transit systems designed for luxury penthouses and car collectors.",
-        longDescription: "Engineered with dual operating panels and infrared positioning beams to transport luxury vehicles between floors.",
-        features: ["Wide profile cabins", "Precision positioning guidance", "Reinforced double-deck structures"],
-        image: "automobile"
-      },
+
       {
         id: "escalators",
         title: "Escalators",

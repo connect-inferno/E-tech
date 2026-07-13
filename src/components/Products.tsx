@@ -13,16 +13,14 @@ if (typeof window !== "undefined") {
 
 // Map key to curated Unsplash images
 const PRODUCT_IMAGES: Record<string, string> = {
-  passenger: "https://images.unsplash.com/photo-1545459720-aac33910c662?q=80&w=600",
-  capsule: "https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?q=80&w=600",
-  glass: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=600",
-  home: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600",
-  hospital: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=600",
-  freight: "https://images.unsplash.com/photo-1530124560677-bdaea029fea0?q=80&w=600",
-  hydraulic: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?q=80&w=600",
-  mrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600",
-  automobile: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=600",
-  escalators: "https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=600",
+  passenger: "/images/passenger_elavtor__1.jpg",
+  capsule: "/images/capsule_elevator__2.jpg",
+  glass: "/images/glass_elevators_2.jpg",
+  home: "/images/home_elevators_2.jpg",
+  hospital: "/images/hospitle_elevator__2.jpg",
+  hydraulic: "/images/hydraulic_elevator_in_building_1.jpg",
+  mrl: "/images/MRL_elevator_in_building__2.jpg",
+  escalators: "/images/escalator.jpg",
 };
 
 export default function Products() {

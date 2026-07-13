@@ -130,10 +130,10 @@ export default function About() {
             <p className="animate-text text-luxury-text-primary font-medium tracking-wide">
               {siteContent.about.storyTitle}
             </p>
-            <p className="animate-text">
+            <p className="animate-text whitespace-pre-line">
               {siteContent.about.storyParagraph1}
             </p>
-            <p className="animate-text">
+            <p className="animate-text whitespace-pre-line">
               {siteContent.about.storyParagraph2}
             </p>
           </div>
