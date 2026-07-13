@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { siteContent } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Mail, MapPin, Phone, Clock, PhoneCall, Check } from "lucide-react";
+import { Mail, MapPin, Phone, Clock, PhoneCall } from "lucide-react";
+import CrmForm from "./CrmForm";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -12,7 +13,6 @@ if (typeof window !== "undefined") {
 
 export default function Contact() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const [formSubmitted, setFormSubmitted] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -63,14 +63,6 @@ export default function Contact() {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
-    }, 5000);
-  };
-
   return (
     <section
       id="contact"
@@ -100,9 +92,9 @@ export default function Contact() {
         </div>
 
         {/* Content Layout Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
           {/* Left Column: Details */}
-          <div className="space-y-12 animate-panel">
+          <div className="lg:col-span-5 space-y-12 animate-panel">
             <div className="space-y-6">
               <p className="text-xl md:text-2xl text-luxury-text-secondary leading-relaxed font-light">
                 {siteContent.contact.description}
@@ -152,103 +144,26 @@ export default function Contact() {
                 </div>
               </div>
             </div>
+
+            {/* Compact Map Pane */}
+            <div className="border border-white/5 p-2 rounded-sm bg-luxury-card/30">
+              <iframe
+                src={siteContent.contact.googleMapIframe}
+                className="w-full h-[250px] border-0 rounded-sm grayscale invert opacity-75 hover:opacity-90 transition-opacity duration-500"
+                allowFullScreen={false}
+                loading="lazy"
+                title="Office Location Map"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
           </div>
 
-          {/* Right Column: Premium Glass Form */}
-          <div className="animate-panel">
-            <form
-              onSubmit={handleSubmit}
-              className="glass-panel p-8 md:p-10 rounded-sm space-y-6 relative overflow-hidden"
-            >
-              {/* Form Success Panel */}
-              {formSubmitted && (
-                <div className="absolute inset-0 bg-luxury-card/95 z-30 flex flex-col items-center justify-center text-center p-6 transition-opacity duration-300">
-                  <div className="w-12 h-12 rounded-full bg-luxury-accent/10 border border-luxury-accent flex items-center justify-center mb-4 text-luxury-accent">
-                    <Check className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-heading font-light text-luxury-text-primary mb-2">
-                    Design Brief Received
-                  </h3>
-                  <p className="text-xs text-luxury-text-secondary max-w-xs font-light leading-relaxed">
-                    Our structural engineering team will review your project specs and contact you within 24 hours.
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <h3 className="text-lg md:text-xl font-heading font-light tracking-wide text-luxury-text-primary">
-                  Request Consultation
-                </h3>
-                <p className="text-xs text-luxury-text-secondary font-light">
-                  Submit your architectural specs for a customized elevator layout.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-widest text-luxury-text-secondary">Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Richard Foster"
-                      className="w-full bg-white/3 border border-white/5 rounded-sm px-4 py-3 text-xs text-luxury-text-primary placeholder-white/20 focus:outline-none focus:border-luxury-accent transition-colors duration-300"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-widest text-luxury-text-secondary">Email</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="e.g. contact@foster.com"
-                      className="w-full bg-white/3 border border-white/5 rounded-sm px-4 py-3 text-xs text-luxury-text-primary placeholder-white/20 focus:outline-none focus:border-luxury-accent transition-colors duration-300"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest text-luxury-text-secondary">Project Category</label>
-                  <select className="w-full bg-white/3 border border-white/5 rounded-sm px-4 py-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent transition-colors duration-300">
-                    <option className="bg-luxury-bg" value="passenger">Passenger Elevator</option>
-                    <option className="bg-luxury-bg" value="capsule">Capsule Elevator</option>
-                    <option className="bg-luxury-bg" value="glass">Glass Elevator</option>
-                    <option className="bg-luxury-bg" value="home">Home Elevator</option>
-                    <option className="bg-luxury-bg" value="hospital">Hospital Elevator</option>
-                    <option className="bg-luxury-bg" value="other">Specialized Mechanical Solutions</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest text-luxury-text-secondary">Message</label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Describe building structural dimensions, floor counts, cabin stylistic preferences..."
-                    className="w-full bg-white/3 border border-white/5 rounded-sm px-4 py-3 text-xs text-luxury-text-primary placeholder-white/20 focus:outline-none focus:border-luxury-accent transition-colors duration-300 resize-none"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full luxury-btn py-3.5 text-[10px] uppercase tracking-[0.2em] font-medium"
-              >
-                {siteContent.contact.ctaLabel}
-              </button>
-            </form>
+          {/* Right Column: CRM Form */}
+          <div className="lg:col-span-7 animate-panel">
+            <div id="crm-form-container" className="p-1 border border-white/5 bg-luxury-card/30 rounded-sm">
+              <CrmForm />
+            </div>
           </div>
-        </div>
-
-        {/* Full-width Map pane */}
-        <div className="animate-panel border border-white/5 p-2 rounded-sm bg-luxury-card/30">
-          <iframe
-            src={siteContent.contact.googleMapIframe}
-            className="w-full h-80 md:h-[400px] border-0 rounded-sm grayscale invert opacity-75 hover:opacity-90 transition-opacity duration-500"
-            allowFullScreen={false}
-            loading="lazy"
-            title="Office Location Map"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
         </div>
       </div>
     </section>

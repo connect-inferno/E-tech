@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CrmForm from "@/components/CrmForm";
 import { siteContent, ServiceItem } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -64,11 +65,6 @@ export default function ServicesPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [activeStep, setActiveStep] = useState(0);
 
-  // Form state
-  const [emergencySubmitted, setEmergencySubmitted] = useState(false);
-  const [buildingType, setBuildingType] = useState("Residential");
-  const [inquiryType, setInquiryType] = useState("Emergency Breakdown");
-
   useEffect(() => {
     // Scroll to top on mount
     window.scrollTo(0, 0);
@@ -106,11 +102,6 @@ export default function ServicesPage() {
       ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmergencySubmitted(true);
-  };
 
   return (
     <main ref={containerRef} className="relative w-full min-h-screen bg-luxury-bg text-luxury-text-primary">
@@ -198,11 +189,10 @@ export default function ServicesPage() {
                 <button
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`p-5 text-left border rounded-sm transition-all duration-300 flex items-center justify-between focus:outline-none ${
-                    activeStep === idx
-                      ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
-                      : "border-white/5 hover:border-white/10 text-luxury-text-secondary"
-                  }`}
+                  className={`p-5 text-left border rounded-sm transition-all duration-300 flex items-center justify-between focus:outline-none ${activeStep === idx
+                    ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
+                    : "border-white/5 hover:border-white/10 text-luxury-text-secondary"
+                    }`}
                 >
                   <div className="space-y-1">
                     <span className="text-[9px] uppercase tracking-widest text-luxury-accent block">
@@ -270,157 +260,101 @@ export default function ServicesPage() {
 
       {/* Emergency dispatch request widget */}
       <section className="py-20 md:py-28 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           {/* Dispatch info text */}
-          <div className="lg:col-span-5 space-y-6">
-            <span className="text-xs uppercase tracking-[0.4em] text-luxury-accent font-semibold flex items-center gap-1.5">
-              <ShieldAlert className="w-4 h-4 text-luxury-accent" /> 24/7 Dispatch Control
-            </span>
-            <h2 className="text-3xl md:text-4xl font-heading font-light tracking-tight text-luxury-text-primary">
-              Emergency Rapid Dispatch
-            </h2>
-            <p className="text-xs md:text-sm text-luxury-text-secondary leading-relaxed font-light">
-              We operate an immediate service support cell in our corporate hubs. If your system requires urgent maintenance, spare parts, or certified troubleshooting, launch an alert ticket below.
-            </p>
-            <div className="p-6 border border-white/5 bg-luxury-card rounded-sm space-y-3">
-              <p className="text-xs text-luxury-text-primary uppercase tracking-widest font-medium">
+          <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-32 self-start">
+            <div className="space-y-4">
+              <span className="text-xs uppercase tracking-[0.4em] text-luxury-accent font-semibold flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-luxury-accent animate-pulse" /> 24/7 Dispatch Control
+              </span>
+              <h2 className="text-3xl md:text-4xl font-heading font-light tracking-tight text-luxury-text-primary">
+                Emergency Rapid Dispatch
+              </h2>
+              <p className="text-xs md:text-sm text-luxury-text-secondary leading-relaxed font-light">
+                We operate an immediate service support cell in our corporate hubs. If your system requires urgent maintenance, spare parts, or certified troubleshooting, launch an alert ticket below.
+              </p>
+            </div>
+
+            <div className="p-6 border border-white/5 bg-luxury-card rounded-sm space-y-3 relative overflow-hidden group">
+              {/* Subtle background glow */}
+              <div className="absolute -inset-y-12 -inset-x-12 bg-luxury-accent/5 blur-3xl rounded-full opacity-50 pointer-events-none" />
+
+              <p className="text-xs text-luxury-text-primary uppercase tracking-widest font-medium relative z-10">
                 Emergency support hotline
               </p>
-              <p className="text-lg md:text-xl font-heading font-light text-luxury-accent flex items-center gap-2">
+              <p className="text-lg md:text-xl font-heading font-light text-luxury-accent flex items-center gap-2 relative z-10 transition-transform duration-300 group-hover:translate-x-1">
                 <PhoneCall className="w-4 h-4" /> {siteContent.contact.info.emergencyPhone}
               </p>
-              <p className="text-[10px] text-luxury-text-secondary font-light">
+              <p className="text-[10px] text-luxury-text-secondary font-light relative z-10">
                 *Response teams deploy in under 60 minutes for active AMC contracts.
               </p>
+            </div>
+
+            {/* Rapid Response Timeline */}
+            <div className="pt-4 space-y-4">
+              <h3 className="text-xs uppercase tracking-[0.2em] text-luxury-text-primary font-medium">
+                Dispatch Protocol
+              </h3>
+              <div className="space-y-5 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
+                {/* Step 1 */}
+                <div className="flex gap-4 relative">
+                  <div className="w-6 h-6 rounded-full bg-luxury-accent/10 border border-luxury-accent/30 flex items-center justify-center shrink-0 z-10">
+                    <span className="text-[10px] font-semibold text-luxury-accent">1</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-medium text-luxury-text-primary">Instant Triage</h4>
+                    <p className="text-[11px] text-luxury-text-secondary leading-relaxed font-light">
+                      Your ticket instantly alerts our active telemetry center and duty engineer.
+                    </p>
+                  </div>
+                </div>
+                {/* Step 2 */}
+                <div className="flex gap-4 relative">
+                  <div className="w-6 h-6 rounded-full bg-luxury-accent/10 border border-luxury-accent/30 flex items-center justify-center shrink-0 z-10">
+                    <span className="text-[10px] font-semibold text-luxury-accent">2</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-medium text-luxury-text-primary">Tech Allocation</h4>
+                    <p className="text-[11px] text-luxury-text-secondary leading-relaxed font-light">
+                      Nearest specialized field service unit is dispatched with parts pre-allocated.
+                    </p>
+                  </div>
+                </div>
+                {/* Step 3 */}
+                <div className="flex gap-4 relative">
+                  <div className="w-6 h-6 rounded-full bg-luxury-accent/10 border border-luxury-accent/30 flex items-center justify-center shrink-0 z-10">
+                    <span className="text-[10px] font-semibold text-luxury-accent">3</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-medium text-luxury-text-primary">Resolution & Audit</h4>
+                    <p className="text-[11px] text-luxury-text-secondary leading-relaxed font-light">
+                      System recovery is executed, tested, and certified for active operation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-white/5">
+              <div className="text-center p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                <p className="text-lg md:text-xl font-heading font-light text-luxury-accent">60m</p>
+                <p className="text-[9px] uppercase tracking-wider text-luxury-text-secondary font-light">Max Response</p>
+              </div>
+              <div className="text-center p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                <p className="text-lg md:text-xl font-heading font-light text-luxury-accent">24/7</p>
+                <p className="text-[9px] uppercase tracking-wider text-luxury-text-secondary font-light">Monitoring</p>
+              </div>
+              <div className="text-center p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                <p className="text-lg md:text-xl font-heading font-light text-luxury-accent">100%</p>
+                <p className="text-[9px] uppercase tracking-wider text-luxury-text-secondary font-light">Certified</p>
+              </div>
             </div>
           </div>
 
           {/* Form Widget */}
-          <div className="lg:col-span-7 bg-luxury-card border border-white/5 rounded-sm p-8 md:p-10 shadow-2xl relative">
-            {!emergencySubmitted ? (
-              <form onSubmit={handleFormSubmit} className="space-y-6">
-                <h3 className="text-xl font-heading font-light text-luxury-text-primary border-b border-white/5 pb-4">
-                  Deploy Dispatch Technician
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                      Building Type
-                    </label>
-                    <div className="flex gap-2">
-                      {["Residential", "Commercial", "Clinical"].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setBuildingType(type)}
-                          className={`flex-1 py-2 text-center text-[10px] uppercase tracking-wider border rounded-sm transition-all focus:outline-none ${
-                            buildingType === type
-                              ? "border-luxury-accent text-luxury-accent bg-luxury-accent/5"
-                              : "border-white/5 text-luxury-text-secondary hover:border-white/15"
-                          }`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                      Inquiry Category
-                    </label>
-                    <select
-                      value={inquiryType}
-                      onChange={(e) => setInquiryType(e.target.value)}
-                      className="w-full bg-black/40 border border-white/5 rounded-sm p-2.5 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent"
-                    >
-                      <option value="Emergency Breakdown">Emergency Breakdown</option>
-                      <option value="AMC Scheduled Check">AMC Scheduled Check</option>
-                      <option value="Upgrades & Accessories">Upgrades & Accessories</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                      Contact Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Johnathan Dev"
-                      className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                      Contact Phone
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. +91 99000-XXXXX"
-                      className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                    Site Location Address
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Penthouse Suite 4, MG Road, Bangalore"
-                    className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary block">
-                    Describe Incident / Symptoms
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="e.g. Leveling offsets detected on ground floor cabin landing..."
-                    className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent resize-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="luxury-btn w-full text-center py-4 text-xs uppercase tracking-[0.25em] font-medium flex items-center justify-center gap-2"
-                >
-                  Send Dispatch Alert <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-            ) : (
-              <div className="py-16 text-center space-y-6 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-luxury-accent/10 border border-luxury-accent flex items-center justify-center text-luxury-accent animate-bounce">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-heading font-light text-luxury-text-primary">
-                    Dispatch Alert Active
-                  </h3>
-                  <p className="text-xs text-luxury-text-secondary max-w-sm mx-auto leading-relaxed">
-                    A ticketing coordinator has received your location brief. A certified E Tech engineer is mapping route details now.
-                  </p>
-                </div>
-                <div className="pt-6 w-full max-w-xs border-t border-white/5 text-[10px] text-luxury-accent font-light uppercase tracking-widest">
-                  Active Ticket ID: #ET-{Math.floor(1000 + Math.random() * 9000)}
-                </div>
-                <button
-                  onClick={() => setEmergencySubmitted(false)}
-                  className="border border-white/10 hover:bg-white/5 transition-all text-[9px] uppercase tracking-widest px-6 py-2.5 rounded-sm text-luxury-text-secondary mt-4"
-                >
-                  Open New Ticket
-                </button>
-              </div>
-            )}
+          <div className="lg:col-span-7">
+            <CrmForm />
           </div>
         </div>
       </section>

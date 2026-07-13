@@ -33,6 +33,19 @@ export default function HeroSequence() {
     return `/images/elevator-sequence/${frameNumber}.jpg`;
   };
 
+  // Helper to wrap "Safety" and "Trust" in accent-colored spans
+  const highlightAccents = (text: string) => {
+    if (!text) return "";
+    const parts = text.split(/(Safety|Trust)/g);
+    return parts.map((part, i) =>
+      part === "Safety" || part === "Trust" ? (
+        <span key={i} className="text-[#C9A44B] font-semibold">{part}</span>
+      ) : (
+        part
+      )
+    );
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -323,53 +336,75 @@ export default function HeroSequence() {
       <div className="sequence-canvas-container absolute top-0 left-0 w-full h-screen overflow-hidden z-10">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
 
+        {/* Soft Golden Backlight Radial Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_450px_at_50%_50%,rgba(201,164,75,0.08),transparent_80%)] pointer-events-none z-15" />
+
         {/* Phase 1: Architectural atmosphere & Intro */}
         <div className="phase-1-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20">
-          <h1 className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-luxury-text-primary mb-6 animate-pulse duration-4000">
+          <h1 
+            className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6 animate-pulse duration-4000"
+            style={{ textShadow: "0 0 30px rgba(201, 164, 75, 0.35), 0 0 60px rgba(201, 164, 75, 0.15)" }}
+          >
             {siteContent.hero.phase1.title}
           </h1>
-          <p className="text-sm md:text-lg tracking-[0.4em] uppercase text-luxury-accent font-light max-w-xl">
-            {siteContent.hero.phase1.subtitle}
+          <p className="text-sm md:text-lg tracking-[0.4em] uppercase font-light max-w-xl text-[rgba(250,250,250,0.65)]">
+            {highlightAccents(siteContent.hero.phase1.subtitle)}
           </p>
-          <div className="absolute bottom-16 flex flex-col items-center gap-2 text-luxury-text-secondary animate-bounce">
+          <div className="absolute bottom-16 flex flex-col items-center gap-2 text-[rgba(250,250,250,0.65)] animate-bounce">
             <span className="text-[10px] uppercase tracking-[0.35em] font-light">Scroll to Begin Journey</span>
-            <ArrowDown className="w-4 h-4 text-luxury-accent" />
+            <ArrowDown className="w-4 h-4 text-[#C9A44B]" />
           </div>
         </div>
 
         {/* Phase 2: Orbit - Luxury Vertical Mobility */}
         <div className="phase-2-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-luxury-text-primary mb-6 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+          <h2 
+            className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
+            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+          >
             {siteContent.hero.phase2.title}
           </h2>
-          <p className="text-sm md:text-lg text-luxury-accent font-light max-w-xl leading-relaxed tracking-wider drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            {siteContent.hero.phase2.description}
+          <p 
+            className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
+            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+          >
+            {highlightAccents(siteContent.hero.phase2.description)}
           </p>
         </div>
 
         {/* Phase 3: Designed Around Experience */}
         <div className="phase-3-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-luxury-text-primary mb-6 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+          <h2 
+            className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
+            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+          >
             {siteContent.hero.phase3.title}
           </h2>
-          <p className="text-sm md:text-lg text-luxury-accent font-light max-w-xl leading-relaxed tracking-wider drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            {siteContent.hero.phase3.description}
+          <p 
+            className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
+            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+          >
+            {highlightAccents(siteContent.hero.phase3.description)}
           </p>
         </div>
 
         {/* Phase 4: Precision Engineering Feature List */}
         <div className="phase-4-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-luxury-text-primary mb-8 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+          <h2 
+            className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-8"
+            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+          >
             {siteContent.hero.phase4.title}
           </h2>
           <ul className="space-y-4 max-w-md text-left md:text-center md:inline-block">
             {siteContent.hero.phase4.features.map((feature, idx) => (
               <li
                 key={idx}
-                className="phase-4-li flex items-center md:justify-center gap-4 text-sm md:text-lg tracking-widest text-luxury-accent font-light drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                className="phase-4-li flex items-center md:justify-center gap-4 text-sm md:text-lg tracking-widest font-light text-[rgba(250,250,250,0.65)]"
+                style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-luxury-accent shrink-0" />
-                <span>{feature}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C9A44B] shrink-0" />
+                <span>{highlightAccents(feature)}</span>
               </li>
             ))}
           </ul>
@@ -377,11 +412,17 @@ export default function HeroSequence() {
 
         {/* Phase 5: Arrival & Call to Action */}
         <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none">
-          <h1 className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-luxury-text-primary mb-6 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+          <h1 
+            className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6"
+            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+          >
             {siteContent.hero.phase5.title}
           </h1>
-          <p className="text-sm md:text-lg tracking-[0.4em] uppercase text-luxury-accent font-light max-w-xl mb-12 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-            {siteContent.hero.phase5.subtitle}
+          <p 
+            className="text-sm md:text-lg tracking-[0.4em] uppercase font-light max-w-xl mb-12 text-[rgba(250,250,250,0.65)]"
+            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+          >
+            {highlightAccents(siteContent.hero.phase5.subtitle)}
           </p>
           <a
             href="#about"
