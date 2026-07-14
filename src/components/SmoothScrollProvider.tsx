@@ -22,6 +22,9 @@ export default function SmoothScrollProvider({
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
   useEffect(() => {
+    // Force scroll to top before Lenis takes over to prevent jumping to cached scroll positions
+    window.scrollTo(0, 0);
+    
     // Instantiate Lenis smooth scroll
     const lenisInstance = new Lenis({
       duration: 1.4,

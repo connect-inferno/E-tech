@@ -72,6 +72,8 @@ export default function HeroSequence() {
       const rawWidth = img.naturalWidth;
       const rawHeight = img.naturalHeight;
 
+      if (!rawWidth || !rawHeight) return;
+
       // Apply crop margins to the source image dimensions
       const sx = CROP_CONFIG.left;
       const sy = CROP_CONFIG.top;
