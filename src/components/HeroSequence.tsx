@@ -412,12 +412,12 @@ export default function HeroSequence() {
 
         {/* Phase 5: Arrival & Call to Action */}
         <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none">
-          <h1 
+          <h2 
             className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6"
             style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
           >
             {siteContent.hero.phase5.title}
-          </h1>
+          </h2>
           <p 
             className="text-sm md:text-lg tracking-[0.4em] uppercase font-light max-w-xl mb-12 text-[rgba(250,250,250,0.65)]"
             style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
