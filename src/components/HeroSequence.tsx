@@ -10,8 +10,8 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// The source video — 720p, all-keyframes, optimized for scroll scrubbing
-const VIDEO_SRC = "/images/elevator-hero-720p.mp4";
+// The source video — 1080p, all-keyframes, CRF 28 (quality/size balanced)
+const VIDEO_SRC = "/images/elevator-hero-hq.mp4";
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
