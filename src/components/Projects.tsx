@@ -141,12 +141,13 @@ export default function Projects() {
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/0 pointer-events-none z-10" />
 
                   {/* Parallax Image Backdrop */}
-                  <div className="absolute inset-0 w-full h-full scale-105 overflow-hidden">
+                  <div className="absolute inset-0 w-full h-full scale-105 overflow-hidden" style={{ willChange: 'transform' }}>
                     <img
                       src={PROJECT_IMAGES[project.id] || PROJECT_IMAGES.p1}
                       alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      className="gpu-img w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
 

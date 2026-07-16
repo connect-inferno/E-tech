@@ -172,12 +172,13 @@ export default function Products() {
               </div>
 
               {/* Central stylized image backdrop */}
-              <div className="relative w-full h-1/2 my-6 overflow-hidden rounded-sm border border-white/5 bg-black/40 z-20">
+              <div className="relative w-full h-1/2 my-6 overflow-hidden rounded-sm border border-white/5 bg-black/40 z-20" style={{ willChange: 'transform' }}>
                 <img
                   src={PRODUCT_IMAGES[product.image] || PRODUCT_IMAGES.passenger}
                   alt={product.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="gpu-img w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   loading="lazy"
+                  decoding="async"
                 />
                 {/* Dark overlay inside image */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80" />

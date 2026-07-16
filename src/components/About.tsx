@@ -173,7 +173,7 @@ export default function About() {
         <div className="w-full lg:w-1/2 flex justify-center">
           <div
             ref={imageContainerRef}
-            className="relative w-full aspect-[4/5] max-w-md md:max-w-lg overflow-hidden border border-white/10 rounded-sm shadow-2xl bg-luxury-card"
+            className="parallax-container relative w-full aspect-[4/5] max-w-md md:max-w-lg overflow-hidden border border-white/10 rounded-sm shadow-2xl bg-luxury-card"
           >
             {/* Dark vignette overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-luxury-bg via-transparent to-transparent opacity-80 z-10" />
@@ -182,7 +182,8 @@ export default function About() {
               ref={imageRef}
               src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200"
               alt="Luxury Architecture"
-              className="absolute top-0 left-0 w-full h-[130%] object-cover select-none pointer-events-none scale-105"
+              className="gpu-img absolute top-0 left-0 w-full h-[130%] object-cover select-none pointer-events-none scale-105"
+              decoding="async"
             />
           </div>
         </div>

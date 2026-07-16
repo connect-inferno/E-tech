@@ -53,68 +53,89 @@ export default function HeroSequence() {
     if (!ctx) return;
 
     let isComponentMounted = true;
-    const images: HTMLImageElement[] = [];
+    const images: HTMLImageElement[] = new Array(TOTAL_FRAMES).fill(null);
     imagesRef.current = images;
 
-    // Phase 1: Preload the first 20 frames immediately to render the initial state rapidly
-    const criticalFrameCount = 20;
+    // ── Mobile detection ─────────────────────────────────────────────────────
+    // On mobile we apply two strategies:
+    //   1. Load every 2nd frame only (120 frames instead of 240) — halves memory
+    //   2. Cap canvas DPR at 1.25× instead of 2× — 2.56× fewer pixels per draw
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+    const FRAME_STEP = isMobile ? 2 : 1;  // skip odd frames on mobile
+    const DPR_CAP = isMobile ? 1.25 : 2;  // lower resolution on mobile
+
+    // Phase 1: Preload first N frames for fast initial render
+    const criticalFrameCount = isMobile ? 10 : 20;
     let criticalLoadedCount = 0;
-    let totalLoadedCount = 0;
 
-    const drawFrame = (index: number) => {
-      const img = images[index - 1];
-      if (!img || !img.complete) return;
+    // ── Cached layout values ──────────────────────────────────────────────────
+    // Recomputed only on resize (not on every drawFrame call), so onUpdate is
+    // as cheap as possible — just an array lookup + one drawImage call.
+    let cachedSx = 0, cachedSy = 0, cachedSw = 0, cachedSh = 0;
+    let cachedDx = 0, cachedDy = 0, cachedDw = 0, cachedDh = 0;
+    let layoutReady = false;
 
+    const computeLayout = (img: HTMLImageElement) => {
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
-
-      // Extract raw measurements
       const rawWidth = img.naturalWidth;
       const rawHeight = img.naturalHeight;
-
       if (!rawWidth || !rawHeight) return;
 
-      // Apply crop margins to the source image dimensions
-      const sx = CROP_CONFIG.left;
-      const sy = CROP_CONFIG.top;
-      const sw = rawWidth - CROP_CONFIG.left - CROP_CONFIG.right;
-      const sh = rawHeight - CROP_CONFIG.top - CROP_CONFIG.bottom;
+      cachedSx = CROP_CONFIG.left;
+      cachedSy = CROP_CONFIG.top;
+      cachedSw = rawWidth - CROP_CONFIG.left - CROP_CONFIG.right;
+      cachedSh = rawHeight - CROP_CONFIG.top - CROP_CONFIG.bottom;
 
-      // Perform a cover scale computation for the cropped source box relative to target canvas
-      const croppedRatio = sw / sh;
+      const croppedRatio = cachedSw / cachedSh;
       const canvasRatio = canvasWidth / canvasHeight;
 
-      let dx = 0;
-      let dy = 0;
-      let dw = canvasWidth;
-      let dh = canvasHeight;
+      cachedDx = 0; cachedDy = 0; cachedDw = canvasWidth; cachedDh = canvasHeight;
 
       if (canvasRatio > croppedRatio) {
-        // Canvas is wider than the cropped source image
-        dh = canvasWidth / croppedRatio;
-        dy = (canvasHeight - dh) / 2;
+        cachedDh = canvasWidth / croppedRatio;
+        cachedDy = (canvasHeight - cachedDh) / 2;
       } else {
-        // Canvas is taller than the cropped source image
-        dw = canvasHeight * croppedRatio;
-        dx = (canvasWidth - dw) / 2;
+        cachedDw = canvasHeight * croppedRatio;
+        cachedDx = (canvasWidth - cachedDw) / 2;
       }
+      layoutReady = true;
+    };
 
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-      currentFrameIndexRef.current = index;
+    // ── rAF-throttled draw ────────────────────────────────────────────────────
+    // GSAP onUpdate can fire multiple times between browser paint frames.
+    // We schedule a single draw per visual frame using requestAnimationFrame,
+    // which is the key fix for canvas stutter during scroll.
+    let pendingFrame: number | null = null;
+    let pendingIndex = 1;
+
+    const drawFrame = (index: number) => {
+      pendingIndex = index;
+      if (pendingFrame !== null) return; // already scheduled for this visual frame
+      pendingFrame = requestAnimationFrame(() => {
+        pendingFrame = null;
+        const img = images[pendingIndex - 1];
+        if (!img || !img.complete || !layoutReady) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, cachedSx, cachedSy, cachedSw, cachedSh, cachedDx, cachedDy, cachedDw, cachedDh);
+        currentFrameIndexRef.current = pendingIndex;
+      });
     };
 
     const handleResize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
 
-      // Scale context back to normal coordinates but render with high density
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
+      ctx.imageSmoothingQuality = "medium"; // 'high' is imperceptible during animation
 
-      // Draw last current frame to retain render state
+      // Recompute cached layout for new canvas size
+      const refImg = images[currentFrameIndexRef.current - 1] || images[0];
+      if (refImg && refImg.complete) computeLayout(refImg);
+
+      // Draw current frame with updated dimensions
       drawFrame(currentFrameIndexRef.current);
     };
 
@@ -123,24 +144,23 @@ export default function HeroSequence() {
     const onFrameLoaded = (index: number, isCritical: boolean) => {
       if (!isComponentMounted) return;
 
-      totalLoadedCount++;
-
       if (isCritical) {
         criticalLoadedCount++;
         const progress = Math.round((criticalLoadedCount / criticalFrameCount) * 100);
         setLoadProgress(progress);
-        
+
         if (criticalLoadedCount === criticalFrameCount) {
-          // Trigger initial canvas resize and first frame draw immediately
+          // Compute layout from first loaded frame, then resize canvas + draw
+          const firstImg = images[0];
+          if (firstImg && firstImg.complete) computeLayout(firstImg);
           handleResize();
           drawFrame(1);
-          
+
           setIsLoaded(true);
-          // Setup GSAP animation early so user doesn't wait for 240 frames
           setupScrollAnimation();
-          
-          // Start loading the rest of the frames in chunks to prevent network throttling on mobile
-          loadRemainingFramesInChunks(criticalFrameCount + 1);
+
+          // Load remaining frames after critical ones are shown
+          loadRemainingFramesInChunks((criticalFrameCount * FRAME_STEP) + 1);
         }
       }
     };
@@ -149,7 +169,7 @@ export default function HeroSequence() {
       return new Promise((resolve) => {
         const img = new Image();
         const isCritical = i <= criticalFrameCount;
-        
+
         img.onload = () => {
           onFrameLoaded(i, isCritical);
           resolve();
@@ -159,29 +179,25 @@ export default function HeroSequence() {
           onFrameLoaded(i, isCritical);
           resolve();
         };
-        
+
         img.src = getFrameUrl(i);
         images[i - 1] = img;
       });
     };
 
-    // Pre-allocate array
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      images.push(null as any);
-    }
-
-    // Start critical frames loading
-    for (let i = 1; i <= criticalFrameCount; i++) {
+    // Start critical frames loading — on mobile load every 2nd frame only
+    for (let i = 1; i <= criticalFrameCount * FRAME_STEP; i += FRAME_STEP) {
       loadFrame(i);
     }
 
     const loadRemainingFramesInChunks = async (startIndex: number) => {
-      const CHUNK_SIZE = 4; // Load 4 frames at a time to be safe on iOS
-      for (let i = startIndex; i <= TOTAL_FRAMES; i += CHUNK_SIZE) {
+      // On mobile: smaller chunks + skip odd frames to stay within memory limits
+      const CHUNK_SIZE = isMobile ? 4 : 8;
+      for (let i = startIndex; i <= TOTAL_FRAMES; i += CHUNK_SIZE * FRAME_STEP) {
         if (!isComponentMounted) break;
-        const promises = [];
-        for (let j = 0; j < CHUNK_SIZE && i + j <= TOTAL_FRAMES; j++) {
-          promises.push(loadFrame(i + j));
+        const promises: Promise<void>[] = [];
+        for (let j = 0; j < CHUNK_SIZE && i + j * FRAME_STEP <= TOTAL_FRAMES; j++) {
+          promises.push(loadFrame(i + j * FRAME_STEP));
         }
         await Promise.all(promises);
       }
@@ -200,17 +216,21 @@ export default function HeroSequence() {
           end: "+=600%", // Pin and scrub for 6 viewports of scroll distance
           pin: true,
           pinSpacing: true,
-          scrub: 1.2, // Smooth interpolation easing
+          scrub: 0.5, // Reduced from 1.2 — tighter tracking eliminates the "sticky lag" feel
         },
       });
 
       // 1. Frame Index scrubbing (0% to 100% timeline progress)
+      // On mobile we only have every 2nd frame loaded — snap to nearest loaded frame
       tl.to(frameObj, {
         index: TOTAL_FRAMES,
         ease: "none",
         duration: 100,
         onUpdate: () => {
-          drawFrame(Math.round(frameObj.index));
+          const raw = Math.round(frameObj.index);
+          // Snap to nearest loaded frame index based on FRAME_STEP
+          const snapped = Math.max(1, Math.round(raw / FRAME_STEP) * FRAME_STEP);
+          drawFrame(Math.min(snapped, TOTAL_FRAMES));
         },
       }, 0);
 
@@ -296,10 +316,12 @@ export default function HeroSequence() {
 
     return () => {
       isComponentMounted = false;
+      if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
       window.removeEventListener("resize", handleResize);
       ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
+
 
   const handleCtaScroll = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -336,7 +358,11 @@ export default function HeroSequence() {
 
       {/* Sticky Canvas & Overlay Text Container */}
       <div className="sequence-canvas-container absolute top-0 left-0 w-full h-screen overflow-hidden z-10">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ willChange: "transform", transform: "translateZ(0)" }}
+        />
 
         {/* Soft Golden Backlight Radial Glow */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_450px_at_50%_50%,rgba(201,164,75,0.08),transparent_80%)] pointer-events-none z-15" />
