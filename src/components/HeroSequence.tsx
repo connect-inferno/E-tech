@@ -10,8 +10,8 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// The source video — single file replaces 240 JPG frames
-const VIDEO_SRC = "/images/elevator-hero.mp4";
+// The source video — 720p, all-keyframes, optimized for scroll scrubbing
+const VIDEO_SRC = "/images/elevator-hero-720p.mp4";
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -101,10 +101,16 @@ export default function HeroSequence() {
           end: "+=600%",
           pin: true,
           pinSpacing: true,
-          scrub: true, // scrub:true = direct 1:1 mapping with scroll, no added lag
+          // anticipatePin pre-calculates the pin position before it's needed,
+          // preventing the layout jump/freeze that happens on pin activation
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          scrub: true, // 1:1 direct scroll mapping, no added smoothing lag
           onUpdate: (self) => {
             seekTo(self.progress * video.duration);
           },
+          // Free up the video decoder when section is fully past
+          onLeaveBack: () => { video.currentTime = 0; },
         },
       });
 
