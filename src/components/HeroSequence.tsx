@@ -10,10 +10,11 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// 240 pre-decoded frames — smooth on any device because scroll = drawImage
-// (a GPU blit), no video decoder on the scroll path.
+// 240 pre-decoded WebP frames (1280 wide, q78) — smooth on any device because
+// scroll = drawImage (a GPU blit), no video decoder on the scroll path.
+// Total transfer: ~12 MB, 87% smaller than the original JPG sequence.
 const FRAME_COUNT = 240;
-const FRAME_URL = (i: number) => `/images/elevator-sequence/${i}.jpg`;
+const FRAME_URL = (i: number) => `/images/elevator-sequence-webp/${i}.webp`;
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
