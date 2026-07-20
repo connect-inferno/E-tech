@@ -11,7 +11,7 @@ export interface ProductItem {
   description: string;
   longDescription: string;
   features: string[];
-  image: string; // Will use local placeholders / stylized canvas/gradients
+  image: string;
 }
 
 export interface ServiceItem {
@@ -36,16 +36,31 @@ export interface ProjectItem {
   image: string;
 }
 
+export interface MilestoneItem {
+  year: string;
+  title: string;
+}
+
+export interface CoreValueItem {
+  title: string;
+  description: string;
+  iconName: string;
+}
+
 export const siteContent = {
   metadata: {
     title: "E TECH ELEVATORS | Elevating Safety, Reliability & Trust",
-    description: "Experience premium, luxury elevator engineering. Cinematic vertical mobility systems for passenger, capsule, glass, home, and industrial architectures.",
+    description: "ISO-certified elevator installation, AMC, modernization and 24/7 breakdown support across Maharashtra. Based in Pune, serving 500+ lifts with 120+ active AMC clients.",
   },
   company: {
     name: "E TECH ELEVATORS",
     tagline: "Elevating Safety, Reliability & Trust",
     logoText: "E TECH",
     ctaText: "Get Quote",
+    certifications: "ISO Certified · 7+ Years of Excellence · Maharashtra Operations",
+    founded: 2019,
+    headquarters: "Pune, Maharashtra",
+    employees: "25+",
   },
   navigation: {
     links: [
@@ -58,33 +73,28 @@ export const siteContent = {
     ],
   },
   hero: {
-    // 0-20%
     phase1: {
       title: "E TECH ELEVATORS",
       subtitle: "Elevating Safety, Reliability & Trust",
     },
-    // 20-40%
     phase2: {
-      title: "Luxury Vertical Mobility",
-      description: "Crafting premium elevator systems where engineering, architecture and innovation move together.",
+      title: "Reliable Vertical Mobility",
+      description: "Trusted elevator installation, maintenance and modernization across Maharashtra since 2019.",
     },
-    // 40-60%
     phase3: {
-      title: "Designed Around Experience",
-      description: "Every detail is engineered for comfort, silence and elegance. Transitioning seamlessly through space.",
+      title: "Designed Around Safety",
+      description: "Every service call, every AMC, every install is built on a foundation of Safety, Quality and Customer First.",
     },
-    // 60-80%
     phase4: {
       title: "Precision Engineering",
       features: [
-        "Advanced Safety Systems",
-        "Smooth Ride Technology",
-        "Silent Performance",
-        "Energy Efficient Design",
-        "Premium Architectural Components",
+        "15-minute emergency response",
+        "100% Genuine OEM Spare Parts",
+        "Factory-Trained Engineers",
+        "Digital Service Reporting",
+        "Annual Safety Audits",
       ],
     },
-    // 80-100%
     phase5: {
       title: "E TECH ELEVATORS",
       subtitle: "Elevating Safety, Reliability & Trust",
@@ -92,21 +102,52 @@ export const siteContent = {
     },
   },
   about: {
-    title: "The Standard of Architectural Elevation",
+    title: "The Standard of Reliable Elevation",
     subtitle: "About Us",
     storyTitle: "A Message from Our Leadership",
-    storyParagraph1: "Dear Valued Clients, Partners,\n\nIt is with immense pride and gratitude that I welcome you to E-Tech Elevator – a company built on the foundation of trust, safety, and engineering excellence. Over the past two-and-a-half decades, we have grown from a local service provider to one of Maharashtra's most respected elevator companies, serving thousands of residential, commercial, and industrial clients across the region.",
-    storyParagraph2: "Our journey has been driven by one core belief: that every person who steps into an elevator deserves the highest standard of safety and reliability. This belief has shaped every decision we make – from the spare parts we use to the engineers we train and the service protocols we follow.",
+    storyParagraph1: "Dear Valued Clients, Partners,\n\nIt is with immense pride and gratitude that I welcome you to E Tech Elevators — a company built on trust, safety, and engineering excellence. Since our founding in 2019, we have grown from a Pune-based service provider into one of Maharashtra's most respected elevator companies, today serving 120+ active AMC clients and 500+ lifts under maintenance across the region.",
+    storyParagraph2: "Our journey has been driven by one core belief: every person who steps into an elevator deserves the highest standard of safety and reliability. This belief shapes every decision we make — from the 100% genuine OEM parts we install, to the factory-trained engineers who service them, to the transparent digital reports we deliver to every client.",
     missionTitle: "Our Mission",
-    missionText: "To be India's most trusted elevator service company – delivering world-class safety, reliability, and innovation to every building we serve.",
+    missionText: "Provide superior elevator services with fast response times, high safety standards, and transparent reporting to every building we serve.",
     visionTitle: "Our Vision",
-    visionText: "E-Tech Elevator will expand its operations across Maharashtra, invest in smart elevator monitoring technology, and strengthen our AMC ecosystem with digital tools that empower our clients with real-time service visibility.",
+    visionText: "To become India's most trusted elevator service company by delivering world-class safety, reliability, and innovation.",
     stats: [
-      { value: "500+", number: 500, suffix: "+", label: "Global Installations" },
-      { value: "0", number: 0, suffix: " incidents", label: "Safety Records Unmatched" }, // will animate
-      { value: "99.9%", number: 99.9, suffix: "%", label: "System Uptime" },
-      { value: "24/7", number: 24, suffix: "/7", label: "Proactive Response Support" },
+      { value: "500+", number: 500, suffix: "+", label: "Lifts Under Maintenance" },
+      { value: "120+", number: 120, suffix: "+", label: "Active AMC Clients" },
+      { value: "94%", number: 94, suffix: "%", label: "First-Time Fix Rate" },
+      { value: "24/7", number: 24, suffix: "/7", label: "Emergency Support" },
     ] as StatItem[],
+    coreValues: [
+      { title: "Safety", description: "Every decision, every install, every service call starts with safety first.", iconName: "ShieldCheck" },
+      { title: "Quality", description: "100% genuine OEM parts, factory-trained engineers, IS:14665 and ISO 9001:2015 aligned processes.", iconName: "Award" },
+      { title: "Innovation", description: "Digital service reporting and smart monitoring so clients see everything we do.", iconName: "Cpu" },
+      { title: "Reliability", description: "94% first-time fix rate and a 15-minute emergency response commitment.", iconName: "Zap" },
+      { title: "Customer First", description: "Transparent quarterly and annual reports — no hidden work, no hidden costs.", iconName: "Headphones" },
+    ] as CoreValueItem[],
+    milestones: [
+      { year: "2019", title: "Company founded in Pune" },
+      { year: "2020", title: "100+ AMC clients onboarded" },
+      { year: "2021", title: "Installation & Modernization divisions launched" },
+      { year: "2022", title: "ISO Certification achieved" },
+      { year: "2024", title: "500+ AMC contracts under maintenance" },
+      { year: "2025", title: "Expansion to Pimpri-Chinchwad & Nashik" },
+      { year: "2026", title: "Pan-Maharashtra expansion" },
+    ] as MilestoneItem[],
+    performance: [
+      { value: "94%", label: "First-time fix rate" },
+      { value: "100%", label: "Engineer certification" },
+      { value: "100%", label: "Genuine OEM parts" },
+      { value: "85%", label: "Digital reporting adoption" },
+      { value: "100%", label: "Annual safety audit pass rate" },
+      { value: "91%", label: "Employee retention" },
+    ],
+    compliance: [
+      "IS:14665 compliant",
+      "ISO 9001:2015 Quality Management",
+      "LOTO procedures on every site",
+      "Emergency Rescue Protocol",
+      "Continuous quality improvement",
+    ],
   },
   products: {
     title: "Vertical Systems Portfolio",
@@ -114,233 +155,264 @@ export const siteContent = {
     categories: [
       {
         id: "passenger",
-        title: "Passenger Elevators",
-        description: "Elegant and smooth transit systems for premium residential and commercial spaces.",
-        longDescription: "Crafted with micro-engineered vibration dampers and luxury cabin options ranging from brushed titanium to customized walnut paneling.",
-        features: ["Ultra-smooth ride profile", "Intelligent traffic allocation", "Custom luxury interior styles"],
-        image: "passenger"
-      },
-      {
-        id: "capsule",
-        title: "Capsule Elevators",
-        description: "Panoramic vertical capsules designed to turn vertical transitions into artistic events.",
-        longDescription: "Designed for malls, premium hotels, and luxury spaces seeking to display architectural transit in style.",
-        features: ["180-degree panoramic glass views", "Pneumatic or gearless drive options", "Ambient architectural base lighting"],
-        image: "capsule"
-      },
-      {
-        id: "glass",
-        title: "Glass Elevators",
-        description: "Minimalist structural glass systems that integrate seamlessly into modern luxury homes.",
-        longDescription: "Features invisible architectural frames and maximum glass surface area to retain spatial transparency.",
-        features: ["Frameless glass architecture", "Hydraulic or MRL configuration", "Silent motor technology"],
-        image: "glass"
-      },
-      {
-        id: "home",
-        title: "Home Elevators",
-        description: "Compact, quiet, and luxury-tailored elevators designed for private villas.",
-        longDescription: "Requiring minimal headroom and pit depth, E Tech Private home systems represent the peak of personalized engineering.",
-        features: ["No major structural modifications", "Single-phase power compatibility", "Custom bespoke design styles"],
-        image: "home"
-      },
-      {
-        id: "hospital",
-        title: "Hospital Elevators",
-        description: "Precision-engineered, heavy-duty bed elevators focusing on care and reliability.",
-        longDescription: "Engineered with specialized leveling systems, extra-wide entrances, and emergency backup configurations.",
-        features: ["Accurate deck-leveling technology", "Hygienic stainless steel walls", "Priority emergency response routing"],
-        image: "hospital"
-      },
-
-      {
-        id: "hydraulic",
-        title: "Hydraulic Elevators",
-        description: "High-load, space-saving mechanisms ideal for low-rise structures.",
-        longDescription: "Ideal for residential buildings of 2-5 floors where smooth acceleration and minimum top clearance are required.",
-        features: ["Exceptional weight bearing capabilities", "Smooth, silent piston drives", "Low maintenance costs"],
-        image: "hydraulic"
+        title: "Passenger Lifts",
+        description: "Smooth, quiet passenger elevators for residential and commercial buildings.",
+        longDescription: "Reliable everyday transit engineered for comfort, silent operation and predictable service life. Cabin finishes tailored to your building's design.",
+        features: ["Smooth ride profile", "Intelligent traffic allocation", "Custom cabin interiors"],
+        image: "passenger",
       },
       {
         id: "mrl",
-        title: "MRL Elevators",
+        title: "MRL Lifts",
         description: "Machine-Room-Less setups that save architectural space.",
-        longDescription: "By locating the compact gearless motor directly inside the hoistway, MRL elevators free up premium penthouse spaces.",
-        features: ["Eco-friendly energy consumption", "No separate machine room required", "Sleek gearless traction design"],
-        image: "mrl"
+        longDescription: "Compact gearless motor sits inside the hoistway, freeing up rooftop space and reducing civil work.",
+        features: ["No separate machine room", "Energy-efficient gearless traction", "Ideal for space-constrained buildings"],
+        image: "mrl",
       },
-
       {
-        id: "escalators",
-        title: "Escalators",
-        description: "Continuous vertical transit systems built for retail and transit hubs.",
-        longDescription: "Quiet mechanical walkways and escalators designed with step-chain sensors and automated speed governors.",
-        features: ["Smart standby energy-saver mode", "LED step guidance lighting", "Intelligent wear detectors"],
-        image: "escalators"
+        id: "geared",
+        title: "Geared Lifts",
+        description: "Proven geared traction systems for medium-rise buildings.",
+        longDescription: "Robust, easy-to-service geared traction machines suited to buildings where lifetime cost and serviceability matter more than top speed.",
+        features: ["Rugged, long-life gearbox", "Lower installation cost", "Familiar service ecosystem"],
+        image: "geared",
+      },
+      {
+        id: "gearless",
+        title: "Gearless Lifts",
+        description: "Modern PMSM gearless drives for premium ride quality.",
+        longDescription: "Permanent-magnet synchronous motors deliver silent, smooth transit with minimal maintenance and superior energy efficiency.",
+        features: ["Silent operation", "High energy efficiency", "Minimal wear parts"],
+        image: "gearless",
+      },
+      {
+        id: "hydraulic",
+        title: "Hydraulic Lifts",
+        description: "High-load, space-saving mechanisms ideal for low-rise structures.",
+        longDescription: "Best for 2-5 floor buildings where smooth acceleration and minimum top clearance are required.",
+        features: ["Exceptional weight bearing", "Smooth piston drive", "Low overhead requirement"],
+        image: "hydraulic",
+      },
+      {
+        id: "hospital",
+        title: "Hospital Lifts",
+        description: "Heavy-duty bed elevators focused on care, hygiene and reliability.",
+        longDescription: "Engineered with accurate deck-leveling, extra-wide entrances and priority emergency routing for patient movement.",
+        features: ["Accurate deck-leveling", "Hygienic stainless-steel walls", "Priority emergency routing"],
+        image: "hospital",
+      },
+      {
+        id: "goods",
+        title: "Goods / Freight Lifts",
+        description: "High-capacity freight elevators for warehouses, factories and retail.",
+        longDescription: "Built for heavy daily load cycles with reinforced flooring, protective wall panels and robust safety controls.",
+        features: ["High load capacity", "Reinforced flooring & walls", "Heavy-duty safety controls"],
+        image: "goods",
+      },
+      {
+        id: "car",
+        title: "Car Lifts",
+        description: "Vehicle elevators for stack parking and multi-level automotive access.",
+        longDescription: "Engineered platforms sized and reinforced for cars, with precision leveling for smooth drive-on / drive-off.",
+        features: ["Sized for standard vehicles", "Precision leveling", "Heavy platform reinforcement"],
+        image: "car",
+      },
+      {
+        id: "home",
+        title: "Home Lifts",
+        description: "Compact, quiet, luxury-tailored elevators designed for private villas.",
+        longDescription: "Minimal headroom and pit-depth requirements make these ideal for retrofits into existing homes without major structural work.",
+        features: ["No major structural modifications", "Single-phase power compatibility", "Custom bespoke design"],
+        image: "home",
+      },
+      {
+        id: "capsule",
+        title: "Capsule Lifts",
+        description: "Panoramic vertical capsules that turn transit into an architectural feature.",
+        longDescription: "Designed for malls, premium hotels, and showroom lobbies where the lift itself is part of the design language.",
+        features: ["Panoramic glass views", "Pneumatic or gearless drive", "Ambient base lighting"],
+        image: "capsule",
       },
     ] as ProductItem[],
   },
   services: {
-    title: "Engineering Services Lifecycle",
+    title: "Complete Elevator Services Lifecycle",
     subtitle: "Our Services",
     items: [
       {
         id: "installation",
-        title: "Precision Installation",
-        description: "Seamless on-site integration using state-of-the-art laser alignment systems for absolute vertical precision.",
-        icon: "Wrench"
+        title: "Elevator Installation",
+        description: "New elevator installation across residential, commercial and industrial buildings — from site survey to commissioning.",
+        icon: "Wrench",
       },
       {
-        id: "maintenance",
-        title: "Predictive Maintenance",
-        description: "Regular diagnostics and telemetry monitoring to keep mechanisms functioning perfectly before wear occurs.",
-        icon: "ShieldAlert"
+        id: "amc-comprehensive",
+        title: "Comprehensive AMC",
+        description: "All-inclusive Annual Maintenance Contracts covering parts, routine inspections and priority breakdown response.",
+        icon: "Briefcase",
       },
       {
-        id: "amc",
-        title: "Premium AMC Services",
-        description: "All-inclusive Annual Maintenance Contracts covering certified spare parts, routine inspections, and priority support.",
-        icon: "Briefcase"
+        id: "amc-non-comprehensive",
+        title: "Non-Comprehensive AMC",
+        description: "Scheduled maintenance and inspections with parts billed as needed — a cost-effective option for well-maintained lifts.",
+        icon: "ClipboardList",
+      },
+      {
+        id: "breakdown",
+        title: "Breakdown Maintenance",
+        description: "24/7 emergency dispatch with a 15-minute response commitment. On-call engineers, genuine OEM parts.",
+        icon: "PhoneCall",
+      },
+      {
+        id: "preventive",
+        title: "Preventive Maintenance",
+        description: "Scheduled inspections and predictive checks that catch wear before it becomes a breakdown.",
+        icon: "ShieldAlert",
       },
       {
         id: "modernization",
-        title: "Modernization & Upgrades",
-        description: "Transform outdated mechanical systems into advanced, silent gearless platforms with contemporary luxury cabin styles.",
-        icon: "Activity"
+        title: "Lift Modernization",
+        description: "Upgrade older mechanical systems to modern gearless drives, new control boards, and refreshed cabin interiors.",
+        icon: "Activity",
       },
       {
-        id: "repair",
-        title: "Rapid Mechanical Repair",
-        description: "Immediate corrective action using original equipment manufacturer (OEM) parts to minimize downtime.",
-        icon: "Settings"
+        id: "safety-audits",
+        title: "Safety Audits",
+        description: "Independent annual safety audits aligned to IS:14665 with a written report and remediation plan.",
+        icon: "ShieldCheck",
       },
       {
-        id: "emergency",
-        title: "24/7 Emergency Support",
-        description: "Dedicated emergency dispatcher line and quick-response technician dispatch, operating 365 days a year.",
-        icon: "PhoneCall"
+        id: "consultancy",
+        title: "Technical Consultancy",
+        description: "Specification, selection and layout consultancy for architects, developers and facility teams.",
+        icon: "Settings",
       },
     ] as ServiceItem[],
   },
   whyChooseUs: {
-    title: "The Pillars of E Tech Engineering",
+    title: "Why Buildings Across Maharashtra Choose E Tech",
     subtitle: "Why Choose Us",
     items: [
       {
-        id: "tech",
-        title: "Latest German Technology",
-        description: "Gearless PMSM machines, regenerative energy drives, and micro-processor telemetry boards.",
-        iconName: "Cpu"
+        id: "response",
+        title: "15-Minute Emergency Response",
+        description: "Dedicated dispatch line and on-call engineers for breakdown calls, 24/7 across our service region.",
+        iconName: "Zap",
       },
       {
         id: "engineers",
-        title: "Certified Engineers",
-        description: "Every technician is extensively certified under European safety regulations and mechanical codes.",
-        iconName: "Award"
+        title: "Factory-Trained Engineers",
+        description: "100% engineer certification. Every technician is trained on the systems they service.",
+        iconName: "Award",
       },
       {
-        id: "materials",
-        title: "Premium Materials Only",
-        description: "We use high-grade 304/316 stainless steel, structural carbon glass, and custom luxury metals.",
-        iconName: "Layers"
+        id: "oem",
+        title: "100% Genuine OEM Parts",
+        description: "No third-party substitutes. Every replacement part is genuine OEM — protecting warranty and safety.",
+        iconName: "Layers",
       },
       {
-        id: "installation",
-        title: "Fast & Precise Installation",
-        description: "Standardized assembly workflows and digital scheduling ensure on-time project deliveries.",
-        iconName: "Zap"
+        id: "digital",
+        title: "Digital Service Reporting",
+        description: "Every service visit is logged digitally. Clients see monthly, quarterly and annual reports with 85% adoption today.",
+        iconName: "Cpu",
       },
       {
         id: "safety",
-        title: "Absolute Safety Standards",
-        description: "Triple safety redundancy system including rope brake governors, buffers, and battery rescues.",
-        iconName: "ShieldCheck"
+        title: "Annual Safety Audits",
+        description: "IS:14665 aligned safety audits with a 100% annual pass rate, plus a written remediation plan.",
+        iconName: "ShieldCheck",
       },
       {
         id: "support",
-        title: "24x7 Critical Support",
-        description: "Direct access to mechanical engineers and rapid deployment crews around the clock.",
-        iconName: "Headphones"
+        title: "24/7 Customer Support",
+        description: "Real people, real engineers, no ticket queues. Direct WhatsApp and phone lines to our support team.",
+        iconName: "Headphones",
       },
       {
         id: "custom",
         title: "Fully Customized Solutions",
-        description: "From curved glass capsules to invisible residential shafts, we build what standard companies cannot.",
-        iconName: "Sliders"
+        description: "From capsule lifts to freight and car elevators — we deliver what standard catalogue vendors can't.",
+        iconName: "Sliders",
       },
     ] as WhyItem[],
   },
   projects: {
-    title: "Featured Architectural Journeys",
+    title: "Featured Installations",
     subtitle: "Our Projects",
     categories: ["All", "Residential", "Commercial", "Hospitality", "Medical"],
     items: [
       {
         id: "p1",
-        title: "The Lumina Penthouse Capsule",
+        title: "Premium Residential Capsule Lift",
         category: "Residential",
-        location: "Mumbai, MH",
-        image: "p1"
+        location: "Pune, MH",
+        image: "p1",
       },
       {
         id: "p2",
-        title: "Aura Premium Commercial Hub",
+        title: "Commercial Tower AMC Fleet",
         category: "Commercial",
-        location: "Bangalore, KA",
-        image: "p2"
+        location: "Pimpri-Chinchwad, MH",
+        image: "p2",
       },
       {
         id: "p3",
-        title: "Grand Regent Architectural Glass Lift",
+        title: "Hospitality Glass Elevator",
         category: "Hospitality",
-        location: "New Delhi, DL",
-        image: "p3"
+        location: "Nashik, MH",
+        image: "p3",
       },
       {
         id: "p4",
-        title: "Medipath Care Bed Elevators",
+        title: "Hospital Bed Elevators",
         category: "Medical",
         location: "Pune, MH",
-        image: "p4"
+        image: "p4",
       },
       {
         id: "p5",
-        title: "Zenith Tower MRL Fleet",
+        title: "Multi-Building MRL Modernization",
         category: "Commercial",
-        location: "Hyderabad, TS",
-        image: "p5"
+        location: "Chh. Sambhajinagar, MH",
+        image: "p5",
       },
       {
         id: "p6",
-        title: "Seaside Villa Bespoke Home Lift",
+        title: "Private Villa Bespoke Home Lift",
         category: "Residential",
-        location: "Goa, GA",
-        image: "p6"
+        location: "Kolhapur, MH",
+        image: "p6",
       },
     ] as ProjectItem[],
   },
   contact: {
-    title: "Let's Build Your Next Vertical Journey",
+    title: "Let's Talk About Your Building",
     subtitle: "Contact Us",
-    description: "Begin a consultation with our structural engineers. Discover how E Tech Elevators can integrate seamless safety and luxury into your layout.",
-    ctaLabel: "Send Design Brief",
+    description: "Whether you're planning a new install, need an AMC quote, or want an emergency response — reach the team directly.",
+    ctaLabel: "Send Enquiry",
     info: {
-      address: "E Tech Elevators, Corporate Towers, Level 14, MG Road, Bangalore, India",
-      phone: "+91 (80) 4900 1200",
-      email: "engineering@e-techelevators.com",
-      hours: "Mon - Sat: 9:00 AM - 6:30 PM",
-      emergencyPhone: "+91 99000 88000 (24/7 Helpline)",
+      address: "E Tech Elevator, Pune, Maharashtra – 410505",
+      phone: "+91 95884 09957",
+      whatsapp: "+91 90491 14482",
+      email: "e.tech5534@gmail.com",
+      hours: "Mon – Sat: 9:00 AM – 6:30 PM · 24/7 Emergency Line",
+      emergencyPhone: "+91 95884 09957 (24/7 Emergency)",
     },
-    googleMapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.028773950858!2d77.6083049112933!3d12.970058287291419!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae167e766e4a2d%3A0xe5eb6c433383a152!2sMG%20Road%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1716912345678!5m2!1sen!2sin",
+    serviceAreas: [
+      "Pune",
+      "Pimpri-Chinchwad",
+      "Nashik",
+      "Chhatrapati Sambhajinagar",
+      "Kolhapur",
+    ],
+    googleMapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3781.5!2d73.856!3d18.520!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sPune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1716912345678!5m2!1sen!2sin",
   },
   footer: {
-    disclaimer: "© 2026 E Tech Elevators. All Rights Reserved. Engineered to premium architectural standards.",
-    tagline: "Uncompromising safety, silent engineering, and timeless design.",
+    disclaimer: "© 2026 E Tech Elevators. All Rights Reserved. ISO Certified · Serving Maharashtra since 2019.",
+    tagline: "Safety, reliability and transparent service — from Pune to every corner of Maharashtra.",
     socials: [
-      { name: "LinkedIn", href: "https://linkedin.com" },
-      { name: "Instagram", href: "https://instagram.com" },
-      { name: "Vimeo", href: "https://vimeo.com" },
-      { name: "Pinterest", href: "https://pinterest.com" },
+      { name: "Instagram", href: "https://www.instagram.com/etechelevator5534?utm_source=qr&igsh=eDRiaG90ZnlneXY5" },
     ],
   },
 };

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import { siteContent } from "@/data/siteContent";
-import UnderConstructionModal from "@/components/UnderConstructionModal";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.e-techelevators.com'),
@@ -113,7 +112,6 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-luxury-bg text-luxury-text-primary overflow-x-hidden antialiased" suppressHydrationWarning>
-        <UnderConstructionModal />
         <SmoothScrollProvider>
           {children}
         </SmoothScrollProvider>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { siteContent } from "@/data/siteContent";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -52,14 +53,17 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={(e) => handleLinkClick(e, "/")}
-            className="flex flex-col text-left group select-none"
+            className="group select-none bg-white/95 rounded-sm px-2 py-1 shadow-sm hover:shadow-md transition-shadow"
+            aria-label={siteContent.company.name}
           >
-            <span className="text-lg md:text-xl font-heading font-extralight tracking-[0.3em] text-luxury-text-primary transition-colors duration-300 group-hover:text-luxury-accent">
-              {siteContent.company.logoText}
-            </span>
-            <span className="text-[7px] md:text-[8px] tracking-[0.2em] uppercase text-luxury-text-secondary">
-              E L E V A T O R S
-            </span>
+            <Image
+              src="/images/etech-logo.png"
+              alt={siteContent.company.name}
+              width={90}
+              height={58}
+              priority
+              className="h-9 md:h-11 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop Navigation Links */}

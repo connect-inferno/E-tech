@@ -12,16 +12,19 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Unsplash images
+// Map product id → image asset. Some product types share visual references
+// where no dedicated photo exists yet — replace with dedicated shots later.
 const PRODUCT_IMAGES: Record<string, string> = {
   passenger: "/images/passenger_elavtor__1.jpg",
   capsule: "/images/capsule_elevator__2.jpg",
-  glass: "/images/glass_elevators_2.jpg",
   home: "/images/home_elevators_2.jpg",
   hospital: "/images/hospitle_elevator__2.jpg",
   hydraulic: "/images/hydraulic_elevator_in_building_1.jpg",
   mrl: "/images/MRL_elevator_in_building__2.jpg",
-  escalators: "/images/escalator.jpg",
+  geared: "/images/passenger_elavtor__1.jpg",
+  gearless: "/images/MRL_elevator_in_building__2.jpg",
+  goods: "/images/hospitle_elevator__2.jpg",
+  car: "/images/hydraulic_elevator_in_building_1.jpg",
 };
 
 // Customizer options
