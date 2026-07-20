@@ -8,13 +8,43 @@ import { ArrowDown } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+  // Mobile browsers fire a resize every time the URL bar hides or shows.
+  // Without this, each one refreshes the pin mid-scroll and yanks the user's
+  // scroll position around.
+  ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
-// 240 pre-decoded WebP frames (1280 wide, q78) — smooth on any device because
-// scroll = drawImage (a GPU blit), no video decoder on the scroll path.
-// Total transfer: ~12 MB, 87% smaller than the original JPG sequence.
+// 240 WebP frames — scroll = drawImage (a GPU blit), no video decoder on the
+// scroll path, so scrubbing stays smooth on any device.
+//
+// Frames are downloaded as compressed Blobs and only *decoded* in a sliding
+// window around the current scroll position (see the window logic below).
+// Holding all 240 decoded at once costs 1280*720*4*240 ≈ 844 MB, which blows
+// past the per-tab memory ceiling on iOS Safari (~200-400 MB) — the tab gets
+// killed the moment scrolling forces every frame to decode, which is exactly
+// what "the site freezes after the hero" was.
 const FRAME_COUNT = 240;
-const FRAME_URL = (i: number) => `/images/elevator-sequence-webp/${i}.webp`;
+// Phones paint the canvas at ~780 CSS px wide, so the 1280px set is wasted
+// bytes there; the 720px set is visually identical on device at 1/3 the
+// decoded cost. Same 240 frames, same 1-based numbering, in both sets.
+const DESKTOP_FRAME_DIR = "/images/elevator-sequence-webp";
+const MOBILE_FRAME_DIR = "/images/elevator-sequence-webp-mobile";
+
+// How much of the sequence stays decoded at once. Asymmetric because scrolling
+// continues in the direction you're already going far more often than it
+// reverses, so we buy more runway ahead than behind.
+const WINDOW_AHEAD_DESKTOP = 40;
+const WINDOW_BEHIND_DESKTOP = 20;
+const WINDOW_AHEAD_MOBILE = 28;
+const WINDOW_BEHIND_MOBILE = 12;
+
+// Every Nth frame stays decoded permanently. A flick-scroll can outrun the
+// decoder, and without these the fallback could be dozens of frames stale —
+// visibly frozen. With them the worst case is half a step off, which reads as
+// a slightly coarse scrub rather than a stuck image.
+const KEYFRAME_STEP = 12;
+
+const MAX_CONCURRENT_DECODES = 6;
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,12 +75,29 @@ export default function HeroSequence() {
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    const frames: HTMLImageElement[] = new Array(FRAME_COUNT);
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const frameDir = isCoarsePointer ? MOBILE_FRAME_DIR : DESKTOP_FRAME_DIR;
+    const frameUrl = (i: number) => `${frameDir}/${i}.webp`;
+    const windowAhead = isCoarsePointer ? WINDOW_AHEAD_MOBILE : WINDOW_AHEAD_DESKTOP;
+    const windowBehind = isCoarsePointer ? WINDOW_BEHIND_MOBILE : WINDOW_BEHIND_DESKTOP;
+
+    // Compressed source bytes for every frame — ~4.6 MB (mobile) / ~11.6 MB
+    // (desktop) total, cheap to hold for the lifetime of the hero.
+    const blobs: (Blob | undefined)[] = new Array(FRAME_COUNT);
+    // Decoded pixels, only for frames currently in the window or on a keyframe.
+    // ImageBitmap is used over HTMLImageElement specifically because .close()
+    // frees the backing memory deterministically instead of waiting on GC.
+    const bitmaps: (ImageBitmap | undefined)[] = new Array(FRAME_COUNT);
+    const decoding = new Set<number>();
+
     let loadedCount = 0;
     let cancelled = false;
     let currentFrameIdx = -1;
     let rafId = 0;
     let pendingFrame = -1;
+    let scrollDir = 1;
+
+    const isKeyframe = (i: number) => i % KEYFRAME_STEP === 0;
 
     // Canvas sizing — cover-fit the container, respecting DPR (but capped at 2
     // to avoid burning fill-rate on retina phones for negligible visual gain).
@@ -61,17 +108,17 @@ export default function HeroSequence() {
       canvas.height = Math.round(r.height * dpr);
       canvas.style.width = `${r.width}px`;
       canvas.style.height = `${r.height}px`;
-      if (currentFrameIdx >= 0 && frames[currentFrameIdx]) draw(currentFrameIdx);
+      if (currentFrameIdx >= 0 && bitmaps[currentFrameIdx]) draw(currentFrameIdx);
     };
 
-    // Find the nearest loaded frame to a target index. Used when the user
-    // scrolls faster than we've loaded — instead of a black gap, we show the
-    // closest available frame. Returns -1 if no frame has loaded yet.
+    // Find the nearest decoded frame to a target index. Used when the user
+    // scrolls faster than we can decode — instead of a black gap, we show the
+    // closest available frame. Returns -1 if nothing has decoded yet.
     const nearestLoaded = (target: number): number => {
-      if (frames[target]) return target;
+      if (bitmaps[target]) return target;
       for (let d = 1; d < FRAME_COUNT; d++) {
-        if (target - d >= 0 && frames[target - d]) return target - d;
-        if (target + d < FRAME_COUNT && frames[target + d]) return target + d;
+        if (target - d >= 0 && bitmaps[target - d]) return target - d;
+        if (target + d < FRAME_COUNT && bitmaps[target + d]) return target + d;
       }
       return -1;
     };
@@ -81,8 +128,8 @@ export default function HeroSequence() {
     const draw = (idx: number) => {
       const useIdx = nearestLoaded(idx);
       if (useIdx < 0) return;
-      const img = frames[useIdx];
-      if (!img || !img.complete || !img.naturalWidth) return;
+      const img = bitmaps[useIdx];
+      if (!img || !img.width) return;
       currentFrameIdx = useIdx;
       const cw = canvas.width;
       const ch = canvas.height;
@@ -91,9 +138,9 @@ export default function HeroSequence() {
       const cropPx = 60 * dpr;
       const targetH = ch + cropPx;
       const targetW = cw;
-      const scale = Math.max(targetW / img.naturalWidth, targetH / img.naturalHeight);
-      const drawW = img.naturalWidth * scale;
-      const drawH = img.naturalHeight * scale;
+      const scale = Math.max(targetW / img.width, targetH / img.height);
+      const drawW = img.width * scale;
+      const drawH = img.height * scale;
       const dx = (targetW - drawW) / 2;
       const dy = 0; // anchor top; crop overshoots at the bottom
       ctx.drawImage(img, dx, dy, drawW, drawH);
@@ -102,12 +149,71 @@ export default function HeroSequence() {
     // rAF-batched scroll → frame. GSAP scrub calls onUpdate up to 60×/s;
     // we coalesce to one draw per frame and paint the nearest available frame.
     const setTargetFrame = (idx: number) => {
+      if (idx !== pendingFrame) scrollDir = idx >= pendingFrame ? 1 : -1;
       pendingFrame = idx;
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = 0;
         if (pendingFrame !== currentFrameIdx) draw(pendingFrame);
+        // Reshape the decoded window *after* painting, so decode work never
+        // delays the frame the user is waiting on.
+        updateWindow(pendingFrame);
       });
+    };
+
+    // ── Sliding decode window ────────────────────────────────────────────────
+    // Keeps [center-behind, center+ahead] decoded (biased in the scroll
+    // direction), plus every KEYFRAME_STEP-th frame, and closes everything
+    // else. This is what keeps peak memory flat at ~70 MB instead of growing
+    // to 844 MB as the user scrubs through the sequence.
+    const updateWindow = (center: number) => {
+      if (cancelled || center < 0) return;
+      const lo = Math.max(0, center - (scrollDir >= 0 ? windowBehind : windowAhead));
+      const hi = Math.min(
+        FRAME_COUNT - 1,
+        center + (scrollDir >= 0 ? windowAhead : windowBehind)
+      );
+
+      // Release anything that fell outside the window.
+      for (let i = 0; i < FRAME_COUNT; i++) {
+        if (i >= lo && i <= hi) continue;
+        if (isKeyframe(i)) continue;
+        const bmp = bitmaps[i];
+        if (bmp) {
+          bmp.close();
+          bitmaps[i] = undefined;
+        }
+      }
+
+      // Fill the window, nearest-to-center first so the frames most likely to
+      // be needed next are decoded first.
+      for (let d = 0; d <= hi - lo; d++) {
+        for (const i of d === 0 ? [center] : [center + d, center - d]) {
+          if (i < lo || i > hi) continue;
+          if (decoding.size >= MAX_CONCURRENT_DECODES) return;
+          decodeFrame(i);
+        }
+      }
+    };
+
+    const decodeFrame = (i: number) => {
+      if (bitmaps[i] || decoding.has(i) || !blobs[i] || cancelled) return;
+      decoding.add(i);
+      createImageBitmap(blobs[i]!)
+        .then((bmp) => {
+          decoding.delete(i);
+          if (cancelled) {
+            bmp.close();
+            return;
+          }
+          bitmaps[i] = bmp;
+          // If we were showing a stale fallback and the real frame just landed,
+          // repaint immediately.
+          if (i === pendingFrame && i !== currentFrameIdx) draw(i);
+        })
+        .catch(() => {
+          decoding.delete(i);
+        });
     };
 
     // ── Preload all 240 frames before revealing the hero ─────────────────────
@@ -123,31 +229,50 @@ export default function HeroSequence() {
       while (inFlight < CONCURRENCY && queue.length && !cancelled) {
         const i = queue.shift()!;
         inFlight++;
-        const img = new Image();
-        img.decoding = "async";
-        const finish = (ok: boolean) => {
-          inFlight--;
-          if (ok) frames[i] = img;
-          loadedCount++;
-          setLoadProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
-          if (!readyFired && loadedCount === FRAME_COUNT) {
-            readyFired = true;
-            resize();
-            draw(0);
-            // Small delay so the doors visibly finish opening before hero shows.
-            setTimeout(() => {
-              setIsReady(true);
-              setupScrollAnimation();
-            }, 600);
-          }
-          if (!cancelled) pumpQueue();
-        };
-        img.onload = () => { if (!cancelled) finish(true); };
-        img.onerror = () => { if (!cancelled) finish(false); };
-        // Prioritize the first batch — browsers respect fetchpriority=high
-        // for the initial images even before we've called setIsReady.
-        if (i < 15) img.fetchPriority = "high";
-        img.src = FRAME_URL(i + 1);
+        fetch(frameUrl(i + 1), {
+          // Prioritize the first batch so the opening frames are ready early.
+          priority: i < 15 ? "high" : "auto",
+        } as RequestInit)
+          .then((res) => (res.ok ? res.blob() : null))
+          .then((blob) => {
+            if (cancelled) return;
+            if (blob) blobs[i] = blob;
+          })
+          .catch(() => {})
+          .finally(() => {
+            if (cancelled) return;
+            inFlight--;
+            loadedCount++;
+            setLoadProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
+            if (!readyFired && loadedCount === FRAME_COUNT) {
+              readyFired = true;
+              // Decode the opening window before revealing anything, so the
+              // first paint is the real frame 0 rather than a fallback.
+              updateWindow(0);
+              createImageBitmap(blobs[0]!)
+                .then((bmp) => {
+                  if (cancelled) {
+                    bmp.close();
+                    return;
+                  }
+                  bitmaps[0] = bmp;
+                  resize();
+                  draw(0);
+                })
+                .catch(() => {})
+                .finally(() => {
+                  if (cancelled) return;
+                  // Small delay so the doors visibly finish opening before
+                  // the hero shows.
+                  setTimeout(() => {
+                    if (cancelled) return;
+                    setIsReady(true);
+                    setupScrollAnimation();
+                  }, 600);
+                });
+            }
+            pumpQueue();
+          });
       }
     };
 
@@ -275,8 +400,13 @@ export default function HeroSequence() {
       ScrollTrigger.getAll().forEach((t) => t.kill());
       // Restore the scrollbar in case the component unmounts mid-pin.
       document.documentElement.classList.remove("hide-scrollbar");
-      // Drop references so the browser can GC ~92 MB of decoded frames
-      frames.length = 0;
+      // Explicitly free decoded pixels — .close() releases immediately rather
+      // than leaving it to GC — then drop the compressed source blobs.
+      for (let i = 0; i < FRAME_COUNT; i++) {
+        bitmaps[i]?.close();
+        bitmaps[i] = undefined;
+        blobs[i] = undefined;
+      }
     };
   }, []);
 
@@ -289,7 +419,10 @@ export default function HeroSequence() {
   };
 
   return (
-    <div id="home" ref={containerRef} className="relative w-full h-screen bg-luxury-bg">
+    // 100svh, not 100vh: on mobile 100vh is the *expanded* viewport, so the
+    // hero is taller than the visible area until the URL bar hides, which makes
+    // the pin start at a shifting offset.
+    <div id="home" ref={containerRef} className="relative w-full h-[100svh] bg-luxury-bg">
       {/* Minimal elevator-shaft loader — a single vertical line with a gold
           marker that rises from bottom to top as frames download. Fades out
           once all 240 frames have loaded. */}
@@ -344,7 +477,7 @@ export default function HeroSequence() {
       {/* Frame canvas + overlay text container. Canvas paints pre-decoded
           image frames — the scroll path never touches a video decoder, so
           scrubbing is buttery-smooth on any device. */}
-      <div className="sequence-canvas-container absolute top-0 left-0 w-full h-screen overflow-hidden z-10">
+      <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full"
