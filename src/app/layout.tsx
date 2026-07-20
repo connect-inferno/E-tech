@@ -11,15 +11,20 @@ export const metadata: Metadata = {
   },
   description: siteContent.metadata.description,
   keywords: [
-    "Luxury Elevators",
-    "Passenger Elevators",
-    "Capsule Elevators",
-    "Glass Elevators",
-    "Home Elevators",
-    "Hospital Elevators",
-    "Elevator Engineering",
-    "Premium Vertical Mobility",
-    "Elevators India"
+    "Elevator company Pune",
+    "Elevator installation Maharashtra",
+    "Elevator AMC Pune",
+    "Lift maintenance Pimpri Chinchwad",
+    "Lift modernization Nashik",
+    "Passenger elevators",
+    "Home elevators",
+    "Hospital elevators",
+    "MRL elevators",
+    "Capsule elevators",
+    "Hydraulic lifts",
+    "24/7 breakdown service Maharashtra",
+    "ISO certified elevator company",
+    "E Tech Elevators",
   ],
   authors: [{ name: siteContent.company.name }],
   creator: siteContent.company.name,
@@ -81,30 +86,31 @@ export default function RootLayout({
     "@id": "https://www.e-techelevators.com",
     "url": "https://www.e-techelevators.com",
     "telephone": siteContent.contact.info.phone,
+    "email": siteContent.contact.info.email,
+    "priceRange": "$$",
+    "foundingDate": "2019",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Level 14, MG Road",
-      "addressLocality": "Bangalore",
-      "addressRegion": "Karnataka",
-      "addressCountry": "IN"
+      "addressLocality": "Pune",
+      "addressRegion": "Maharashtra",
+      "postalCode": "410505",
+      "addressCountry": "IN",
     },
+    "areaServed": siteContent.contact.serviceAreas.map((city) => ({
+      "@type": "City",
+      "name": city,
+    })),
     "openingHoursSpecification": {
       "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
-      ],
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
       "opens": "09:00",
-      "closes": "18:30"
-    }
+      "closes": "18:30",
+    },
+    "sameAs": siteContent.footer.socials.map((s) => s.href),
   };
 
   return (
-    <html lang="en" className="no-scrollbar" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

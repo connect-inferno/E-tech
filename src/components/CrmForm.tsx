@@ -23,6 +23,11 @@ import {
   Clock,
   Briefcase
 } from "lucide-react";
+import { siteContent } from "@/data/siteContent";
+
+// E-Tech's WhatsApp Business number — digits only, no leading + or spaces.
+// Every lead submission is sent HERE, not to the customer's own number.
+const ETECH_WHATSAPP = siteContent.contact.info.whatsapp.replace(/[^\d]/g, "");
 
 
 type EnqType = "new" | "mod" | "svc" | "brk" | "amc" | "";
@@ -283,10 +288,11 @@ export default function CrmForm() {
   };
 
   const handleSendWhatsApp = () => {
-    const formattedMobile = mobile.replace(/\s+/g, "").replace(/-/g, "");
-    const waUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(
-      formattedMobile
-    )}&text=${encodeURIComponent(waMessage)}`;
+    // Send to E-Tech's WhatsApp Business number so leads land in the team's
+    // inbox. Customer's own `mobile` is already inside the message body.
+    const waUrl = `https://api.whatsapp.com/send?phone=${ETECH_WHATSAPP}&text=${encodeURIComponent(
+      waMessage
+    )}`;
     window.open(waUrl, "_blank");
   };
 
