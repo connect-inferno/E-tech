@@ -21,7 +21,10 @@ html {
   background-color: var(--color-luxury-bg);
   color: var(--color-luxury-text-primary);
   font-family: var(--font-body);
-  overflow-x: hidden;
+  /* Force a persistent vertical scrollbar so Chrome always allocates the
+     channel — otherwise custom scrollbar styles can end up invisible when
+     combined with overflow-x on descendants. */
+  overflow-y: scroll;
 }
 
 body {
@@ -30,6 +33,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-luxury-bg);
+  /* overflow-x: hidden lives on body (not html) so the vertical scrollbar on
+     html renders correctly on Chrome/Windows. */
+  overflow-x: hidden;
   /* Mobile scroll performance: tells the browser this element only scrolls
      vertically — enables immediate GPU-composited scroll without JS delay */
   touch-action: pan-y;
@@ -56,22 +62,43 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Custom transitions and scrollbar */
+/* Custom transitions and scrollbar — force visibility */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 14px !important;
+  height: 14px !important;
+  background: #0a0a0c !important;
+  display: block !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: #030303;
+  background: #0a0a0c !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1c1c1e;
-  border-radius: 4px;
+  background: #d4af37 !important;
+  border-radius: 7px !important;
+  min-height: 40px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-luxury-accent-muted);
+  background: #f0c750 !important;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: auto !important;
+  scrollbar-color: #d4af37 #0a0a0c !important;
+}
+
+/* Toggled by HeroSequence while the hero is pinned — hides the scrollbar
+   during the cinematic scroll and restores it once the user moves past. */
+html.hide-scrollbar {
+  scrollbar-width: none !important; /* Firefox */
+}
+html.hide-scrollbar::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 
 /* Hide scrollbar utility */

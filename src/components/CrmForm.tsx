@@ -24,8 +24,6 @@ import {
   Briefcase
 } from "lucide-react";
 
-// Client's original logo in Base64
-const LOGO_BASE64 = "data:image/png;base64,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] ==";
 
 type EnqType = "new" | "mod" | "svc" | "brk" | "amc" | "";
 
@@ -391,8 +389,8 @@ export default function CrmForm() {
           <style>
             body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; margin: 40px; font-size: 13px; line-height: 1.6; }
             .header-container { display: flex; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px; }
-            .logo-wrap { background: #030303; padding: 10px; border-radius: 4px; display: inline-block; margin-right: 20px; }
-            .logo-img { height: 50px; }
+            .logo-wrap { background: #ffffff; padding: 6px 10px; border-radius: 4px; display: inline-block; margin-right: 20px; }
+            .logo-wrap img { height: 56px; width: auto; display: block; }
             .title-block { flex: 1; }
             .title-block h1 { margin: 0; font-size: 18px; letter-spacing: 0.05em; font-weight: 700; color: #0c0c0e; }
             .title-block p { margin: 4px 0 0; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -409,7 +407,7 @@ export default function CrmForm() {
         <body>
           <div class="header-container">
             <div class="logo-wrap">
-              <img class="logo-img" src="${LOGO_BASE64}" alt="E-Tech Elevators">
+              <img src="${window.location.origin}/images/etech-logo.png" alt="E-Tech Elevators">
             </div>
             <div class="title-block">
               <h1>E-TECH ELEVATORS</h1>
@@ -513,8 +511,12 @@ export default function CrmForm() {
 
       {/* Header Panel */}
       <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6 mb-6 relative z-10">
-        <div className="bg-white/95 p-2.5 rounded-sm flex items-center justify-center shadow-lg w-16 h-16 shrink-0">
-          <img className="h-10 object-contain" src={LOGO_BASE64} alt="E-Tech Elevators Logo" />
+        <div className="bg-white/95 rounded-sm flex items-center justify-center shadow-lg w-20 h-16 shrink-0 p-1.5">
+          <img
+            src="/images/etech-logo.png"
+            alt="E-Tech Elevators"
+            className="max-h-full max-w-full object-contain"
+          />
         </div>
         <div className="text-center sm:text-left flex-1 space-y-1">
           <div className="text-lg font-heading font-light tracking-wider text-luxury-text-primary">

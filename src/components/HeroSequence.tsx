@@ -110,12 +110,10 @@ export default function HeroSequence() {
       });
     };
 
-    // ── Progressive preload ───────────────────────────────────────────────────
-    // Load the first FIRST_BATCH frames sequentially so the intro is ready
-    // fast (~1 MB), reveal the hero, then keep pumping the rest in the
-    // background with a concurrency cap. If the user out-scrolls the loader,
-    // `draw()` falls back to the nearest loaded frame — no black gaps.
-    const FIRST_BATCH = 15;
+    // ── Preload all 240 frames before revealing the hero ─────────────────────
+    // Progress drives the elevator-door loader animation. Small concurrency
+    // cap keeps HTTP/2 from being greedy and lets the browser prioritize the
+    // first frames.
     const CONCURRENCY = 8;
     const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
     let inFlight = 0;
@@ -132,14 +130,15 @@ export default function HeroSequence() {
           if (ok) frames[i] = img;
           loadedCount++;
           setLoadProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
-          // Reveal the hero as soon as the first batch is in — the rest keep
-          // streaming in the background.
-          if (!readyFired && loadedCount >= FIRST_BATCH) {
+          if (!readyFired && loadedCount === FRAME_COUNT) {
             readyFired = true;
             resize();
             draw(0);
-            setIsReady(true);
-            setupScrollAnimation();
+            // Small delay so the doors visibly finish opening before hero shows.
+            setTimeout(() => {
+              setIsReady(true);
+              setupScrollAnimation();
+            }, 600);
           }
           if (!cancelled) pumpQueue();
         };
@@ -147,7 +146,7 @@ export default function HeroSequence() {
         img.onerror = () => { if (!cancelled) finish(false); };
         // Prioritize the first batch — browsers respect fetchpriority=high
         // for the initial images even before we've called setIsReady.
-        if (i < FIRST_BATCH) img.fetchPriority = "high";
+        if (i < 15) img.fetchPriority = "high";
         img.src = FRAME_URL(i + 1);
       }
     };
@@ -175,6 +174,11 @@ export default function HeroSequence() {
               Math.max(0, Math.round(self.progress * (FRAME_COUNT - 1)))
             );
             setTargetFrame(idx);
+          },
+          // Hide the browser scrollbar while the hero is pinned; show it again
+          // as soon as the user exits the pinned range (in either direction).
+          onToggle: (self) => {
+            document.documentElement.classList.toggle("hide-scrollbar", self.isActive);
           },
         },
       });
@@ -269,6 +273,8 @@ export default function HeroSequence() {
       if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
       ScrollTrigger.getAll().forEach((t) => t.kill());
+      // Restore the scrollbar in case the component unmounts mid-pin.
+      document.documentElement.classList.remove("hide-scrollbar");
       // Drop references so the browser can GC ~92 MB of decoded frames
       frames.length = 0;
     };
@@ -284,25 +290,53 @@ export default function HeroSequence() {
 
   return (
     <div id="home" ref={containerRef} className="relative w-full h-screen bg-luxury-bg">
-      {/* Loading overlay — disappears as soon as video has enough data to play */}
+      {/* Minimal elevator-shaft loader — a single vertical line with a gold
+          marker that rises from bottom to top as frames download. Fades out
+          once all 240 frames have loaded. */}
       {!isReady && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-luxury-bg">
-          <div className="text-center space-y-6">
-            <h2 className="text-sm font-heading tracking-[0.4em] uppercase text-luxury-accent">
-              E TECH ELEVATORS
-            </h2>
-            <p className="text-xs text-luxury-text-secondary tracking-[0.15em] font-light">
-              Initializing Cinematic Atmosphere
-            </p>
-            <div className="relative w-64 h-[1px] bg-white/10 mx-auto overflow-hidden">
+        <div
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-luxury-bg transition-opacity duration-700 ${
+            loadProgress >= 100 ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          <div className="flex flex-col items-center gap-16">
+            {/* Wordmark */}
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-xs font-heading tracking-[0.5em] uppercase text-luxury-text-primary/90">
+                E TECH ELEVATORS
+              </h2>
+              <div className="w-6 h-[1px] bg-luxury-accent/40" />
+            </div>
+
+            {/* Vertical shaft with rising marker */}
+            <div className="relative h-[220px] w-4 flex items-center justify-center">
+              {/* Shaft line */}
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-white/10" />
+              {/* Filled portion (from bottom up) */}
               <div
-                className="absolute top-0 left-0 h-full bg-luxury-accent transition-all duration-300 ease-out"
-                style={{ width: `${loadProgress}%` }}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-luxury-accent/60 transition-all duration-300 ease-out"
+                style={{ height: `${loadProgress}%` }}
+              />
+              {/* Elevator car — a small gold bar with a soft glow */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 w-3 h-[6px] bg-luxury-accent rounded-[1px] transition-all duration-300 ease-out"
+                style={{
+                  bottom: `calc(${loadProgress}% - 3px)`,
+                  boxShadow: "0 0 12px rgba(212,175,55,0.7), 0 0 24px rgba(212,175,55,0.35)",
+                }}
               />
             </div>
-            <p className="text-[10px] text-luxury-text-secondary tracking-widest">
-              {loadProgress}%
-            </p>
+
+            {/* Percentage */}
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-2xl font-heading font-extralight text-luxury-text-primary tabular-nums tracking-wider">
+                {String(loadProgress).padStart(2, "0")}
+                <span className="text-luxury-accent/60 text-base ml-0.5">%</span>
+              </span>
+              <p className="text-[9px] text-luxury-text-secondary tracking-[0.35em] uppercase font-light">
+                Preparing your journey
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -343,12 +377,12 @@ export default function HeroSequence() {
         </div>
 
         {/* Phase 2: Orbit - Luxury Vertical Mobility */}
-        <div className="phase-2-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)]">
+        <div className="phase-2-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
           <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
             style={{
               textShadow:
-                "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)",
+                "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)",
             }}
           >
             {siteContent.hero.phase2.title}
@@ -357,7 +391,7 @@ export default function HeroSequence() {
             className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
             style={{
               textShadow:
-                "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)",
+                "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)",
             }}
           >
             {highlightAccents(siteContent.hero.phase2.description)}
@@ -365,12 +399,12 @@ export default function HeroSequence() {
         </div>
 
         {/* Phase 3: Designed Around Experience */}
-        <div className="phase-3-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)]">
+        <div className="phase-3-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
           <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
             style={{
               textShadow:
-                "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)",
+                "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)",
             }}
           >
             {siteContent.hero.phase3.title}
@@ -379,7 +413,7 @@ export default function HeroSequence() {
             className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
             style={{
               textShadow:
-                "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)",
+                "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)",
             }}
           >
             {highlightAccents(siteContent.hero.phase3.description)}
@@ -387,12 +421,12 @@ export default function HeroSequence() {
         </div>
 
         {/* Phase 4: Precision Engineering Feature List */}
-        <div className="phase-4-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)]">
+        <div className="phase-4-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
           <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-8"
             style={{
               textShadow:
-                "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)",
+                "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)",
             }}
           >
             {siteContent.hero.phase4.title}
@@ -404,7 +438,7 @@ export default function HeroSequence() {
                 className="phase-4-li flex items-center md:justify-center gap-4 text-sm md:text-lg tracking-widest font-light text-[rgba(250,250,250,0.65)]"
                 style={{
                   textShadow:
-                    "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)",
+                    "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)",
                 }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-[#C9A44B] shrink-0" />
@@ -415,12 +449,12 @@ export default function HeroSequence() {
         </div>
 
         {/* Phase 5: Arrival & Call to Action */}
-        <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)]">
+        <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
           <h2
             className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6"
             style={{
               textShadow:
-                "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)",
+                "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)",
             }}
           >
             {siteContent.hero.phase5.title}
@@ -429,7 +463,7 @@ export default function HeroSequence() {
             className="text-sm md:text-lg tracking-[0.4em] uppercase font-light max-w-xl mb-12 text-[rgba(250,250,250,0.65)]"
             style={{
               textShadow:
-                "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)",
+                "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)",
             }}
           >
             {highlightAccents(siteContent.hero.phase5.subtitle)}
