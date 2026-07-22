@@ -30,6 +30,9 @@ const FRAME_COUNT = 240;
 const DESKTOP_FRAME_DIR = "/images/elevator-sequence-webp";
 const MOBILE_FRAME_DIR = "/images/elevator-sequence-webp-mobile";
 
+// Mobile scrubs this single H.264 file instead of the frame sequence.
+const MOBILE_VIDEO_SRC = "/images/elevator-hero-720p.mp4";
+
 // How much of the sequence stays decoded at once. Asymmetric because scrolling
 // continues in the direction you're already going far more often than it
 // reverses, so we buy more runway ahead than behind.
@@ -252,9 +255,11 @@ export default function HeroSequence() {
         video.removeEventListener("loadedmetadata", onProgress);
         video.removeEventListener("canplaythrough", onCanPlayThrough);
         if (!hasRVFC) video.removeEventListener("seeked", drainPending);
-        // Just pause — the sources are <source> children owned by React, so
-        // clearing them here would fight the unmount rather than help it.
+        // Detach the source so the decoder and its buffers are released rather
+        // than lingering until GC gets around to the element.
         video.pause();
+        video.removeAttribute("src");
+        video.load();
       };
     }
 
@@ -694,25 +699,22 @@ export default function HeroSequence() {
           frames, cover-fit with ~60px overshoot at the bottom to crop the
           source watermark. */}
       <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
+        {/* Mobile scrubs a single mp4; desktop scrubs the frame sequence.
+            mp4 only, no webm: H.264 has near-universal hardware decode on
+            mobile, whereas VP9/webm often falls back to software on iOS — and
+            software-decoding a stream you are also seeking ~60x/sec is the
+            exact workload that stutters. */}
         {tier === "mobile" ? (
           <video
             ref={videoRef}
+            src={MOBILE_VIDEO_SRC}
             muted
             playsInline
             preload="auto"
             aria-hidden="true"
             poster="/images/elevator-sequence-webp-mobile/1.webp"
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-          >
-            {/* mp4 is listed first deliberately. H.264 has near-universal
-                hardware decode on mobile; VP9/webm often falls back to software
-                on iOS, and software-decoding a stream you are also seeking
-                60x/sec is the exact workload that stutters. Browsers pick the
-                first source they can play, so this prefers the fast path and
-                keeps webm as the fallback. */}
-            <source src="/images/elevator-hero-720p.mp4" type="video/mp4" />
-            <source src="/images/elevator-hero.webm" type="video/webm" />
-          </video>
+          />
         ) : (
           <canvas
             ref={canvasRef}
