@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   User,
   Building,
@@ -104,12 +104,19 @@ export default function CrmForm() {
   const [reportDate, setReportDate] = useState("");
   const [waMessage, setWaMessage] = useState("");
 
-  // Automatically scroll to form top when step changes
+  // Scroll to the form top when the user advances a step — but NOT on mount.
+  // This component renders inside the homepage's contact section, so scrolling
+  // on the initial effect run would drag the visitor down past the entire hero
+  // the moment the page loads.
+  const hasMountedRef = useRef(false);
   useEffect(() => {
-    const el = document.getElementById("crm-form-container");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
     }
+    document
+      .getElementById("crm-form-container")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [step]);
 
   const handleNextStep0 = () => {

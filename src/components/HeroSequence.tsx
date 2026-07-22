@@ -125,20 +125,138 @@ export default function HeroSequence() {
       }, 600);
     };
 
-    // Mobile uses background video instead of scrubbing 240 frames
-    if (tier === "mobile") {
-      reveal(() => {});
-      return () => {
-        cancelled = true;
-        ScrollTrigger.getAll().forEach((t) => t.kill());
-        document.documentElement.classList.remove("hide-scrollbar");
-      };
-    }
-
-    // Set by the renderer below; called by ScrollTrigger on every update.
+    // Called by ScrollTrigger on every update; set by whichever renderer runs.
+    // Declared up here (not inside a branch) so the binding always exists by
+    // the time setupScrollAnimation's onUpdate fires.
     let applyProgress: (p: number) => void = () => {};
 
-    const teardown = setupFrameRenderer();
+    // Mobile scrubs the video; desktop scrubs the frame sequence.
+    const teardown = tier === "mobile" ? setupVideoRenderer() : setupFrameRenderer();
+
+    // ── Video renderer (mobile) ──────────────────────────────────────────────
+    // Scrubbing compressed video is decoder-heavy: each seek that isn't on a
+    // keyframe forces the decoder to walk forward from the previous one. The
+    // pipeline below keeps exactly one seek in flight so the decoder is never
+    // asked for more work than it can retire, which is the difference between
+    // "slightly soft" and "completely stuck" on a phone.
+    function setupVideoRenderer(): () => void {
+      const video = videoRef.current;
+      if (!video) return () => {};
+
+      // `buffered` reports what the browser actually has cached, so this is a
+      // real download indicator rather than a timer.
+      const bufferedFraction = () => {
+        if (!video.duration || !isFinite(video.duration) || video.buffered.length === 0) {
+          return 0;
+        }
+        let total = 0;
+        for (let i = 0; i < video.buffered.length; i++) {
+          total += video.buffered.end(i) - video.buffered.start(i);
+        }
+        return Math.min(1, total / video.duration);
+      };
+
+      const onProgress = () => {
+        if (cancelled || readyFired) return;
+        const frac = bufferedFraction();
+        setLoadProgress(Math.min(99, Math.round(frac * 100)));
+        // Only reveal once fully buffered — scrubbing into an unbuffered range
+        // stalls the decoder and looks like a freeze.
+        if (frac >= 0.999) {
+          reveal(() => {
+            try {
+              video.currentTime = 0;
+            } catch {
+              /* seeking before metadata resolves throws on some browsers */
+            }
+          });
+        }
+      };
+
+      // Some CDNs never report a complete buffered range for progressive media.
+      const onCanPlayThrough = () => {
+        if (cancelled || readyFired) return;
+        if (bufferedFraction() >= 0.9) reveal(() => {});
+      };
+
+      video.addEventListener("progress", onProgress);
+      video.addEventListener("loadedmetadata", onProgress);
+      video.addEventListener("canplaythrough", onCanPlayThrough);
+      // `progress` can go quiet mid-download on some connections; poll as backup.
+      const progressTimer = window.setInterval(onProgress, 400);
+      // Last-resort reveal so a stalled download can never trap the visitor on
+      // the loader forever.
+      const safetyTimer = window.setTimeout(() => reveal(() => {}), 20000);
+
+      video.load();
+
+      let pendingTarget = -1;
+      let seekInFlight = false;
+      let lastAppliedTime = -1;
+      const MIN_DELTA = 1 / 60;
+
+      const vidAny = video as HTMLVideoElement & {
+        fastSeek?: (t: number) => void;
+        requestVideoFrameCallback?: (cb: () => void) => number;
+      };
+      const hasRVFC = typeof vidAny.requestVideoFrameCallback === "function";
+
+      const applySeek = (t: number) => {
+        seekInFlight = true;
+        lastAppliedTime = t;
+        // fastSeek snaps to the nearest keyframe instead of decoding forward to
+        // an exact time — far cheaper, and the precision loss is invisible in a
+        // scrub. Safari/Firefox have it; Chrome falls back to currentTime.
+        if (typeof vidAny.fastSeek === "function") vidAny.fastSeek(t);
+        else video.currentTime = t;
+      };
+
+      const drainPending = () => {
+        seekInFlight = false;
+        if (pendingTarget < 0) return;
+        const next = pendingTarget;
+        pendingTarget = -1;
+        if (Math.abs(next - lastAppliedTime) < MIN_DELTA) return;
+        applySeek(next);
+      };
+
+      // requestVideoFrameCallback fires when a frame is actually painted, which
+      // is the true decoder-idle signal. `seeked` fires earlier and lets work
+      // stack up behind the decoder.
+      if (hasRVFC) {
+        const tick = () => {
+          if (cancelled) return;
+          drainPending();
+          vidAny.requestVideoFrameCallback!(tick);
+        };
+        vidAny.requestVideoFrameCallback!(tick);
+      } else {
+        video.addEventListener("seeked", drainPending);
+      }
+
+      applyProgress = (p: number) => {
+        if (!video.duration || !isFinite(video.duration) || video.readyState < 2) return;
+        const t = Math.max(0, Math.min(p * video.duration, video.duration));
+        if (Math.abs(t - lastAppliedTime) < MIN_DELTA) return;
+        if (seekInFlight) {
+          pendingTarget = t;
+          return;
+        }
+        applySeek(t);
+      };
+
+      return () => {
+        clearInterval(progressTimer);
+        clearTimeout(safetyTimer);
+        video.removeEventListener("progress", onProgress);
+        video.removeEventListener("loadedmetadata", onProgress);
+        video.removeEventListener("canplaythrough", onCanPlayThrough);
+        if (!hasRVFC) video.removeEventListener("seeked", drainPending);
+        // Just pause — the sources are <source> children owned by React, so
+        // clearing them here would fight the unmount rather than help it.
+        video.pause();
+      };
+    }
 
     function setupFrameRenderer(): () => void {
       const canvas = canvasRef.current;
@@ -579,15 +697,21 @@ export default function HeroSequence() {
         {tier === "mobile" ? (
           <video
             ref={videoRef}
-            autoPlay
             muted
-            loop
             playsInline
             preload="auto"
+            aria-hidden="true"
+            poster="/images/elevator-sequence-webp-mobile/1.webp"
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           >
-            <source src="/images/elevator-hero.webm" type="video/webm" />
+            {/* mp4 is listed first deliberately. H.264 has near-universal
+                hardware decode on mobile; VP9/webm often falls back to software
+                on iOS, and software-decoding a stream you are also seeking
+                60x/sec is the exact workload that stutters. Browsers pick the
+                first source they can play, so this prefers the fast path and
+                keeps webm as the fallback. */}
             <source src="/images/elevator-hero-720p.mp4" type="video/mp4" />
+            <source src="/images/elevator-hero.webm" type="video/webm" />
           </video>
         ) : (
           <canvas
