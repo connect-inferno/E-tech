@@ -14,25 +14,29 @@ if (typeof window !== "undefined") {
   ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
-// 240 WebP frames — scroll = drawImage (a GPU blit), no video decoder on the
-// scroll path, so scrubbing stays smooth on any device.
-//
-// Frames are downloaded as compressed Blobs and only *decoded* in a sliding
-// window around the current scroll position (see the window logic below).
-// Holding all 240 decoded at once costs 1280*720*4*240 ≈ 844 MB, which blows
-// past the per-tab memory ceiling on iOS Safari (~200-400 MB) — the tab gets
-// killed the moment scrolling forces every frame to decode, which is exactly
-// what "the site freezes after the hero" was.
+// ── Pre-decoded frame sequence ──────────────────────────────────────────────
+// Scroll paints frames with drawImage() — a GPU blit with no video decoder on
+// the scroll path at all. Scrubbing a compressed video instead means asking the
+// decoder to seek up to 60×/s, which is its worst-case workload: desktops cope
+// unevenly and phones do not cope at all (iOS Safari drops to single-digit fps
+// and can kill the tab). Frames are the only approach that scrubs smoothly on
+// every device.
 const FRAME_COUNT = 240;
-// Phones paint the canvas at ~780 CSS px wide, so the 1280px set is wasted
-// bytes there; the 720px set is visually identical on device at 1/3 the
-// decoded cost. Same 240 frames, same 1-based numbering, in both sets.
+
+// Same 240 frames, same 1-based numbering, two resolutions. Phones paint the
+// canvas at ~780 CSS px wide, so the 1280px set is wasted bytes there; the
+// 720px set is visually identical on device at roughly a third of the decoded
+// cost.
 const DESKTOP_FRAME_DIR = "/images/elevator-sequence-webp";
 const MOBILE_FRAME_DIR = "/images/elevator-sequence-webp-mobile";
 
 // How much of the sequence stays decoded at once. Asymmetric because scrolling
 // continues in the direction you're already going far more often than it
 // reverses, so we buy more runway ahead than behind.
+//
+// Holding all 240 decoded at once would cost ~844 MB, which blows past the
+// per-tab ceiling on iOS Safari (~200-400 MB). The window keeps peak memory
+// flat at roughly 70 MB instead.
 const WINDOW_AHEAD_DESKTOP = 40;
 const WINDOW_BEHIND_DESKTOP = 20;
 const WINDOW_AHEAD_MOBILE = 28;
@@ -43,14 +47,45 @@ const WINDOW_BEHIND_MOBILE = 12;
 // visibly frozen. With them the worst case is half a step off, which reads as
 // a slightly coarse scrub rather than a stuck image.
 const KEYFRAME_STEP = 12;
-
 const MAX_CONCURRENT_DECODES = 6;
+
+// Numeric scrub (seconds of catch-up) rather than `true`. With `true` the frame
+// index is pinned 1:1 to the scrollbar, so every decode hiccup and every jitter
+// in a fling shows up directly on screen. A catch-up window makes GSAP
+// interpolate toward the target instead, smoothing motion and hiding brief
+// stalls — the single biggest perceived-smoothness win.
+//
+// The two values differ because the platforms have different amounts of
+// smoothing underneath them. Desktop runs Lenis, which already interpolates
+// the scroll position, so a long catch-up here would stack on top of that and
+// feel floaty/detached. Mobile deliberately skips Lenis (native momentum
+// scrolling is better) which means raw, jittery scroll deltas — so scrub is
+// doing all the smoothing work there and needs a wider window.
+const SCRUB_DESKTOP = 0.15;
+const SCRUB_MOBILE = 0.35;
+
+// Phones need far less thumb-travel to feel like a full journey, and a shorter
+// pin means fewer distinct positions to render for the same gesture.
+const PIN_DISTANCE_DESKTOP = "+=600%";
+const PIN_DISTANCE_MOBILE = "+=400%";
+
+type DeviceTier = "" | "desktop" | "mobile";
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [tier, setTier] = useState<DeviceTier>("");
   const [isReady, setIsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
+
+  // Decide on the client only — the server has no way to know the device, and
+  // guessing would mean downloading the wrong resolution set.
+  useEffect(() => {
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const lowMemory = nav.deviceMemory !== undefined && nav.deviceMemory <= 4;
+    setTier(coarsePointer || lowMemory ? "mobile" : "desktop");
+  }, []);
 
   // Helper to wrap accent words in gold spans
   const highlightAccents = (text: string) => {
@@ -68,238 +103,295 @@ export default function HeroSequence() {
   };
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    if (!tier) return;
     const container = containerRef.current;
-    if (!canvas || !container) return;
+    if (!container) return;
 
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    const frameDir = isCoarsePointer ? MOBILE_FRAME_DIR : DESKTOP_FRAME_DIR;
-    const frameUrl = (i: number) => `${frameDir}/${i}.webp`;
-    const windowAhead = isCoarsePointer ? WINDOW_AHEAD_MOBILE : WINDOW_AHEAD_DESKTOP;
-    const windowBehind = isCoarsePointer ? WINDOW_BEHIND_MOBILE : WINDOW_BEHIND_DESKTOP;
-
-    // Compressed source bytes for every frame — ~4.6 MB (mobile) / ~11.6 MB
-    // (desktop) total, cheap to hold for the lifetime of the hero.
-    const blobs: (Blob | undefined)[] = new Array(FRAME_COUNT);
-    // Decoded pixels, only for frames currently in the window or on a keyframe.
-    // ImageBitmap is used over HTMLImageElement specifically because .close()
-    // frees the backing memory deterministically instead of waiting on GC.
-    const bitmaps: (ImageBitmap | undefined)[] = new Array(FRAME_COUNT);
-    const decoding = new Set<number>();
-
-    let loadedCount = 0;
     let cancelled = false;
-    let currentFrameIdx = -1;
-    let rafId = 0;
-    let pendingFrame = -1;
-    let scrollDir = 1;
-
-    const isKeyframe = (i: number) => i % KEYFRAME_STEP === 0;
-
-    // Canvas sizing — cover-fit the container, respecting DPR (but capped at 2
-    // to avoid burning fill-rate on retina phones for negligible visual gain).
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const resize = () => {
-      const r = container.getBoundingClientRect();
-      canvas.width = Math.round(r.width * dpr);
-      canvas.height = Math.round(r.height * dpr);
-      canvas.style.width = `${r.width}px`;
-      canvas.style.height = `${r.height}px`;
-      if (currentFrameIdx >= 0 && bitmaps[currentFrameIdx]) draw(currentFrameIdx);
-    };
-
-    // Find the nearest decoded frame to a target index. Used when the user
-    // scrolls faster than we can decode — instead of a black gap, we show the
-    // closest available frame. Returns -1 if nothing has decoded yet.
-    const nearestLoaded = (target: number): number => {
-      if (bitmaps[target]) return target;
-      for (let d = 1; d < FRAME_COUNT; d++) {
-        if (target - d >= 0 && bitmaps[target - d]) return target - d;
-        if (target + d < FRAME_COUNT && bitmaps[target + d]) return target + d;
-      }
-      return -1;
-    };
-
-    // Cover-fit an image inside the canvas (like CSS background-size: cover).
-    // Falls back to the nearest loaded frame if the requested one isn't ready.
-    const draw = (idx: number) => {
-      const useIdx = nearestLoaded(idx);
-      if (useIdx < 0) return;
-      const img = bitmaps[useIdx];
-      if (!img || !img.width) return;
-      currentFrameIdx = useIdx;
-      const cw = canvas.width;
-      const ch = canvas.height;
-      // Overshoot height by ~60px worth to hide the watermark strip, matching
-      // the old `bottom: -60px` crop on the video element.
-      const cropPx = 60 * dpr;
-      const targetH = ch + cropPx;
-      const targetW = cw;
-      const scale = Math.max(targetW / img.width, targetH / img.height);
-      const drawW = img.width * scale;
-      const drawH = img.height * scale;
-      const dx = (targetW - drawW) / 2;
-      const dy = 0; // anchor top; crop overshoots at the bottom
-      ctx.drawImage(img, dx, dy, drawW, drawH);
-    };
-
-    // rAF-batched scroll → frame. GSAP scrub calls onUpdate up to 60×/s;
-    // we coalesce to one draw per frame and paint the nearest available frame.
-    const setTargetFrame = (idx: number) => {
-      if (idx !== pendingFrame) scrollDir = idx >= pendingFrame ? 1 : -1;
-      pendingFrame = idx;
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = 0;
-        if (pendingFrame !== currentFrameIdx) draw(pendingFrame);
-        // Reshape the decoded window *after* painting, so decode work never
-        // delays the frame the user is waiting on.
-        updateWindow(pendingFrame);
-      });
-    };
-
-    // ── Sliding decode window ────────────────────────────────────────────────
-    // Keeps [center-behind, center+ahead] decoded (biased in the scroll
-    // direction), plus every KEYFRAME_STEP-th frame, and closes everything
-    // else. This is what keeps peak memory flat at ~70 MB instead of growing
-    // to 844 MB as the user scrubs through the sequence.
-    const updateWindow = (center: number) => {
-      if (cancelled || center < 0) return;
-      const lo = Math.max(0, center - (scrollDir >= 0 ? windowBehind : windowAhead));
-      const hi = Math.min(
-        FRAME_COUNT - 1,
-        center + (scrollDir >= 0 ? windowAhead : windowBehind)
-      );
-
-      // Release anything that fell outside the window.
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        if (i >= lo && i <= hi) continue;
-        if (isKeyframe(i)) continue;
-        const bmp = bitmaps[i];
-        if (bmp) {
-          bmp.close();
-          bitmaps[i] = undefined;
-        }
-      }
-
-      // Fill the window, nearest-to-center first so the frames most likely to
-      // be needed next are decoded first.
-      for (let d = 0; d <= hi - lo; d++) {
-        for (const i of d === 0 ? [center] : [center + d, center - d]) {
-          if (i < lo || i > hi) continue;
-          if (decoding.size >= MAX_CONCURRENT_DECODES) return;
-          decodeFrame(i);
-        }
-      }
-    };
-
-    const decodeFrame = (i: number) => {
-      if (bitmaps[i] || decoding.has(i) || !blobs[i] || cancelled) return;
-      decoding.add(i);
-      createImageBitmap(blobs[i]!)
-        .then((bmp) => {
-          decoding.delete(i);
-          if (cancelled) {
-            bmp.close();
-            return;
-          }
-          bitmaps[i] = bmp;
-          // If we were showing a stale fallback and the real frame just landed,
-          // repaint immediately.
-          if (i === pendingFrame && i !== currentFrameIdx) draw(i);
-        })
-        .catch(() => {
-          decoding.delete(i);
-        });
-    };
-
-    // ── Preload all 240 frames before revealing the hero ─────────────────────
-    // Progress drives the elevator-door loader animation. Small concurrency
-    // cap keeps HTTP/2 from being greedy and lets the browser prioritize the
-    // first frames.
-    const CONCURRENCY = 8;
-    const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
-    let inFlight = 0;
     let readyFired = false;
 
-    const pumpQueue = () => {
-      while (inFlight < CONCURRENCY && queue.length && !cancelled) {
-        const i = queue.shift()!;
-        inFlight++;
-        fetch(frameUrl(i + 1), {
-          // Prioritize the first batch so the opening frames are ready early.
-          priority: i < 15 ? "high" : "auto",
-        } as RequestInit)
-          .then((res) => (res.ok ? res.blob() : null))
-          .then((blob) => {
-            if (cancelled) return;
-            if (blob) blobs[i] = blob;
-          })
-          .catch(() => {})
-          .finally(() => {
-            if (cancelled) return;
-            inFlight--;
-            loadedCount++;
-            setLoadProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
-            if (!readyFired && loadedCount === FRAME_COUNT) {
-              readyFired = true;
-              // Decode the opening window before revealing anything, so the
-              // first paint is the real frame 0 rather than a fallback.
-              updateWindow(0);
-              createImageBitmap(blobs[0]!)
-                .then((bmp) => {
-                  if (cancelled) {
-                    bmp.close();
-                    return;
-                  }
-                  bitmaps[0] = bmp;
-                  resize();
-                  draw(0);
-                })
-                .catch(() => {})
-                .finally(() => {
-                  if (cancelled) return;
-                  // Small delay so the doors visibly finish opening before
-                  // the hero shows.
-                  setTimeout(() => {
-                    if (cancelled) return;
-                    setIsReady(true);
-                    setupScrollAnimation();
-                  }, 600);
-                });
-            }
-            pumpQueue();
-          });
-      }
+    // Shared reveal: park on the opening frame, let the loader finish its rise,
+    // then hand over to the scroll animation.
+    const reveal = (paintFirstFrame: () => void) => {
+      if (readyFired || cancelled) return;
+      readyFired = true;
+      setLoadProgress(100);
+      paintFirstFrame();
+      setTimeout(() => {
+        if (cancelled) return;
+        setIsReady(true);
+        setupScrollAnimation();
+      }, 600);
     };
 
-    resize();
-    window.addEventListener("resize", resize);
-    pumpQueue();
+    // Set by the renderer below; called by ScrollTrigger on every update.
+    let applyProgress: (p: number) => void = () => {};
+
+    const teardown = setupFrameRenderer();
+
+    function setupFrameRenderer(): () => void {
+      const canvas = canvasRef.current;
+      if (!canvas || !container) return () => {};
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) return () => {};
+
+      const isMobile = tier === "mobile";
+      const frameDir = isMobile ? MOBILE_FRAME_DIR : DESKTOP_FRAME_DIR;
+      const windowAhead = isMobile ? WINDOW_AHEAD_MOBILE : WINDOW_AHEAD_DESKTOP;
+      const windowBehind = isMobile ? WINDOW_BEHIND_MOBILE : WINDOW_BEHIND_DESKTOP;
+      const frameUrl = (i: number) => `${frameDir}/${i}.webp`;
+
+      // Compressed source bytes for every frame — ~5 MB (mobile) / ~13 MB
+      // (desktop) total, cheap to hold for the lifetime of the hero.
+      const blobs: (Blob | undefined)[] = new Array(FRAME_COUNT);
+      // Decoded pixels, only for frames in the window or on a keyframe.
+      // ImageBitmap over HTMLImageElement specifically because .close() frees
+      // the backing memory deterministically instead of waiting on GC.
+      const bitmaps: (ImageBitmap | undefined)[] = new Array(FRAME_COUNT);
+      const decoding = new Set<number>();
+
+      let loadedCount = 0;
+      let currentFrameIdx = -1;
+      let rafId = 0;
+      let pendingFrame = -1;
+      let scrollDir = 1;
+
+      const isKeyframe = (i: number) => i % KEYFRAME_STEP === 0;
+
+      const resize = () => {
+        if (currentFrameIdx >= 0 && bitmaps[currentFrameIdx]) draw(currentFrameIdx);
+      };
+
+      // Nearest decoded frame to a target. When the user out-scrolls the
+      // decoder we show the closest available frame instead of a black gap.
+      const nearestLoaded = (target: number): number => {
+        if (bitmaps[target]) return target;
+        for (let d = 1; d < FRAME_COUNT; d++) {
+          if (target - d >= 0 && bitmaps[target - d]) return target - d;
+          if (target + d < FRAME_COUNT && bitmaps[target + d]) return target + d;
+        }
+        return -1;
+      };
+
+      // Cover-fit canvas via hardware 1:1 pixel blit + CSS object-cover scaling.
+      // Crops source watermark (~60px) off the bottom during context paint.
+      const draw = (idx: number) => {
+        const useIdx = nearestLoaded(idx);
+        if (useIdx < 0) return;
+        const img = bitmaps[useIdx];
+        if (!img || !img.width) return;
+        currentFrameIdx = useIdx;
+
+        const cropBottom = 60;
+        const srcW = img.width;
+        const srcH = Math.max(1, img.height - cropBottom);
+
+        if (canvas.width !== srcW || canvas.height !== srcH) {
+          canvas.width = srcW;
+          canvas.height = srcH;
+        }
+
+        ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, srcW, srcH);
+      };
+
+      // Background idle pre-decoder queue: pre-decodes keyframes & remaining frames
+      // during CPU idle time after blobs load, ensuring instant 0ms frame lookups.
+      let idlePredecodeScheduled = false;
+      const startIdlePredecoding = () => {
+        if (idlePredecodeScheduled || cancelled) return;
+        idlePredecodeScheduled = true;
+
+        const indicesToPredecode: number[] = [];
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          if (isKeyframe(i)) indicesToPredecode.push(i);
+        }
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          if (!isKeyframe(i)) indicesToPredecode.push(i);
+        }
+
+        let idxPointer = 0;
+        const decodeNext = () => {
+          if (cancelled || idxPointer >= indicesToPredecode.length) return;
+          const i = indicesToPredecode[idxPointer++];
+          if (bitmaps[i] || !blobs[i]) {
+            decodeNext();
+            return;
+          }
+          createImageBitmap(blobs[i]!)
+            .then((bmp) => {
+              if (cancelled) {
+                bmp.close();
+                return;
+              }
+              bitmaps[i] = bmp;
+              if (typeof requestIdleCallback !== "undefined") {
+                requestIdleCallback(decodeNext, { timeout: 100 });
+              } else {
+                setTimeout(decodeNext, 10);
+              }
+            })
+            .catch(() => {
+              if (typeof requestIdleCallback !== "undefined") {
+                requestIdleCallback(decodeNext, { timeout: 100 });
+              } else {
+                setTimeout(decodeNext, 10);
+              }
+            });
+        };
+
+        if (typeof requestIdleCallback !== "undefined") {
+          requestIdleCallback(decodeNext, { timeout: 200 });
+        } else {
+          setTimeout(decodeNext, 50);
+        }
+      };
+
+      // Keeps [center-behind, center+ahead] decoded plus keyframes
+      const updateWindow = (center: number) => {
+        if (cancelled || center < 0) return;
+        const lo = Math.max(0, center - (scrollDir >= 0 ? windowBehind : windowAhead));
+        const hi = Math.min(
+          FRAME_COUNT - 1,
+          center + (scrollDir >= 0 ? windowAhead : windowBehind)
+        );
+
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          if (i >= lo && i <= hi) continue;
+          if (isKeyframe(i)) continue;
+          const bmp = bitmaps[i];
+          if (bmp) {
+            bmp.close();
+            bitmaps[i] = undefined;
+          }
+        }
+
+        for (let d = 0; d <= hi - lo; d++) {
+          for (const i of d === 0 ? [center] : [center + d, center - d]) {
+            if (i < lo || i > hi) continue;
+            if (decoding.size >= MAX_CONCURRENT_DECODES) return;
+            decodeFrame(i);
+          }
+        }
+      };
+
+      const decodeFrame = (i: number) => {
+        if (bitmaps[i] || decoding.has(i) || !blobs[i] || cancelled) return;
+        decoding.add(i);
+        createImageBitmap(blobs[i]!)
+          .then((bmp) => {
+            decoding.delete(i);
+            if (cancelled) {
+              bmp.close();
+              return;
+            }
+            bitmaps[i] = bmp;
+            if (i === pendingFrame && i !== currentFrameIdx) draw(i);
+          })
+          .catch(() => {
+            decoding.delete(i);
+          });
+      };
+
+      applyProgress = (p: number) => {
+        const idx = Math.min(
+          FRAME_COUNT - 1,
+          Math.max(0, Math.round(p * (FRAME_COUNT - 1)))
+        );
+        if (idx !== pendingFrame) scrollDir = idx >= pendingFrame ? 1 : -1;
+        pendingFrame = idx;
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          if (pendingFrame !== currentFrameIdx) draw(pendingFrame);
+          // Schedule window maintenance asynchronously so paint tick is instant
+          setTimeout(() => updateWindow(pendingFrame), 0);
+        });
+      };
+
+      const CONCURRENCY = 8;
+      const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
+      let inFlight = 0;
+
+      const pumpQueue = () => {
+        while (inFlight < CONCURRENCY && queue.length && !cancelled) {
+          const i = queue.shift()!;
+          inFlight++;
+          fetch(frameUrl(i + 1), {
+            priority: i < 15 ? "high" : "auto",
+          } as RequestInit)
+            .then((res) => (res.ok ? res.blob() : null))
+            .then((blob) => {
+              if (cancelled) return;
+              if (blob) blobs[i] = blob;
+            })
+            .catch(() => {})
+            .finally(() => {
+              if (cancelled) return;
+              inFlight--;
+              loadedCount++;
+              setLoadProgress(Math.min(99, Math.round((loadedCount / FRAME_COUNT) * 100)));
+              if (!readyFired && loadedCount === FRAME_COUNT) {
+                updateWindow(0);
+                if (blobs[0]) {
+                  createImageBitmap(blobs[0])
+                    .then((bmp) => {
+                      if (cancelled) {
+                        bmp.close();
+                        return;
+                      }
+                      bitmaps[0] = bmp;
+                      reveal(() => {
+                        resize();
+                        draw(0);
+                        startIdlePredecoding();
+                      });
+                    })
+                    .catch(() => {
+                      reveal(() => {});
+                      startIdlePredecoding();
+                    });
+                } else {
+                  reveal(() => {});
+                  startIdlePredecoding();
+                }
+              }
+              pumpQueue();
+            });
+        }
+      };
+
+      resize();
+      window.addEventListener("resize", resize);
+      pumpQueue();
+
+      return () => {
+        if (rafId) cancelAnimationFrame(rafId);
+        window.removeEventListener("resize", resize);
+        // .close() releases decoded pixels immediately rather than leaving it
+        // to GC; then drop the compressed sources.
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          bitmaps[i]?.close();
+          bitmaps[i] = undefined;
+          blobs[i] = undefined;
+        }
+      };
+    }
 
     function setupScrollAnimation() {
       if (!container) return;
+      const isMobile = tier === "mobile";
 
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: "+=600%",
+          end: isMobile ? PIN_DISTANCE_MOBILE : PIN_DISTANCE_DESKTOP,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          scrub: true,
-          onUpdate: (self) => {
-            const idx = Math.min(
-              FRAME_COUNT - 1,
-              Math.max(0, Math.round(self.progress * (FRAME_COUNT - 1)))
-            );
-            setTargetFrame(idx);
-          },
+          scrub: isMobile ? SCRUB_MOBILE : SCRUB_DESKTOP,
+          onUpdate: (self) => applyProgress(self.progress),
           // Hide the browser scrollbar while the hero is pinned; show it again
           // as soon as the user exits the pinned range (in either direction).
           onToggle: (self) => {
@@ -308,16 +400,13 @@ export default function HeroSequence() {
         },
       });
 
-      // Blur filters were removed — animating `filter: blur()` on scroll is
-      // one of the most expensive compositor operations (re-rasterizes every
-      // frame per layer). Opacity + translate give a similar feel at ~10× perf.
+      // Blur filters were deliberately removed — animating `filter: blur()` on
+      // scroll is one of the most expensive compositor operations
+      // (re-rasterizes every frame per layer). Opacity + translate give a
+      // similar feel at roughly 10× the performance.
 
       // 2. Phase 1 Text: Fades out (0 to 15)
-      tl.to(
-        ".phase-1-text",
-        { opacity: 0, y: -50, ease: "power1.in", duration: 15 },
-        0
-      );
+      tl.to(".phase-1-text", { opacity: 0, y: -50, ease: "power1.in", duration: 15 }, 0);
 
       // 3. Phase 2 Text: Fades in (15 to 23) and out (32 to 40)
       tl.fromTo(
@@ -326,11 +415,7 @@ export default function HeroSequence() {
         { opacity: 1, y: 0, ease: "power2.out", duration: 8 },
         15
       );
-      tl.to(
-        ".phase-2-text",
-        { opacity: 0, y: -50, ease: "power2.in", duration: 8 },
-        32
-      );
+      tl.to(".phase-2-text", { opacity: 0, y: -50, ease: "power2.in", duration: 8 }, 32);
 
       // 4. Phase 3 Text: Fades in (40 to 48) and out (57 to 65)
       tl.fromTo(
@@ -339,11 +424,7 @@ export default function HeroSequence() {
         { opacity: 1, y: 0, ease: "power2.out", duration: 8 },
         40
       );
-      tl.to(
-        ".phase-3-text",
-        { opacity: 0, y: -50, ease: "power2.in", duration: 8 },
-        57
-      );
+      tl.to(".phase-3-text", { opacity: 0, y: -50, ease: "power2.in", duration: 8 }, 57);
 
       // 5. Phase 4 Text: Fades in (65 to 73) and out (80 to 88)
       tl.fromTo(
@@ -378,15 +459,10 @@ export default function HeroSequence() {
         90
       );
 
-      // 7. Video container Fade Out (95 to 100)
+      // 7. Media container fades out (95 to 100)
       tl.to(
         ".sequence-canvas-container",
-        {
-          opacity: 0,
-          scale: 0.95,
-          ease: "none",
-          duration: 5,
-        },
+        { opacity: 0, scale: 0.95, ease: "none", duration: 5 },
         95
       );
 
@@ -395,20 +471,12 @@ export default function HeroSequence() {
 
     return () => {
       cancelled = true;
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
+      teardown();
       ScrollTrigger.getAll().forEach((t) => t.kill());
       // Restore the scrollbar in case the component unmounts mid-pin.
       document.documentElement.classList.remove("hide-scrollbar");
-      // Explicitly free decoded pixels — .close() releases immediately rather
-      // than leaving it to GC — then drop the compressed source blobs.
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        bitmaps[i]?.close();
-        bitmaps[i] = undefined;
-        blobs[i] = undefined;
-      }
     };
-  }, []);
+  }, [tier]);
 
   const handleCtaScroll = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -424,8 +492,8 @@ export default function HeroSequence() {
     // the pin start at a shifting offset.
     <div id="home" ref={containerRef} className="relative w-full h-[100svh] bg-luxury-bg">
       {/* Minimal elevator-shaft loader — a single vertical line with a gold
-          marker that rises from bottom to top as frames download. Fades out
-          once all 240 frames have loaded. */}
+          marker that rises from bottom to top as the media loads. Fades out
+          once everything is buffered and safe to scrub. */}
       {!isReady && (
         <div
           className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-luxury-bg transition-opacity duration-700 ${
@@ -474,13 +542,14 @@ export default function HeroSequence() {
         </div>
       )}
 
-      {/* Frame canvas + overlay text container. Canvas paints pre-decoded
-          image frames — the scroll path never touches a video decoder, so
-          scrubbing is buttery-smooth on any device. */}
+      {/* Frame canvas + overlay text container. The canvas paints pre-decoded
+          frames, cover-fit with ~60px overshoot at the bottom to crop the
+          source watermark. */}
       <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{ display: "block" }}
         />
 
