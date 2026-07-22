@@ -39,7 +39,6 @@ body {
   /* Mobile scroll performance: tells the browser this element only scrolls
      vertically — enables immediate GPU-composited scroll without JS delay */
   touch-action: pan-y;
-  overscroll-behavior-y: none;
 }
 
 h1, h2, h3, h4, h5, h6 {

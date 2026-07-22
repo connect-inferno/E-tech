@@ -67,13 +67,14 @@ const SCRUB_MOBILE = 0.35;
 // Phones need far less thumb-travel to feel like a full journey, and a shorter
 // pin means fewer distinct positions to render for the same gesture.
 const PIN_DISTANCE_DESKTOP = "+=600%";
-const PIN_DISTANCE_MOBILE = "+=400%";
+const PIN_DISTANCE_MOBILE = "+=250%";
 
 type DeviceTier = "" | "desktop" | "mobile";
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [tier, setTier] = useState<DeviceTier>("");
   const [isReady, setIsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -123,6 +124,16 @@ export default function HeroSequence() {
         setupScrollAnimation();
       }, 600);
     };
+
+    // Mobile uses background video instead of scrubbing 240 frames
+    if (tier === "mobile") {
+      reveal(() => {});
+      return () => {
+        cancelled = true;
+        ScrollTrigger.getAll().forEach((t) => t.kill());
+        document.documentElement.classList.remove("hide-scrollbar");
+      };
+    }
 
     // Set by the renderer below; called by ScrollTrigger on every update.
     let applyProgress: (p: number) => void = () => {};
@@ -195,7 +206,9 @@ export default function HeroSequence() {
       };
 
       // Background idle pre-decoder queue: pre-decodes keyframes & remaining frames
-      // during CPU idle time after blobs load, ensuring instant 0ms frame lookups.
+      // during CPU idle time after blobs load.
+      // Mobile Memory Safeguard: On mobile (iOS Safari/Chrome), pre-decode keyframes
+      // ONLY to keep peak tab RAM < 40MB and prevent tab crashes/freezes.
       let idlePredecodeScheduled = false;
       const startIdlePredecoding = () => {
         if (idlePredecodeScheduled || cancelled) return;
@@ -205,8 +218,10 @@ export default function HeroSequence() {
         for (let i = 0; i < FRAME_COUNT; i++) {
           if (isKeyframe(i)) indicesToPredecode.push(i);
         }
-        for (let i = 0; i < FRAME_COUNT; i++) {
-          if (!isKeyframe(i)) indicesToPredecode.push(i);
+        if (!isMobile) {
+          for (let i = 0; i < FRAME_COUNT; i++) {
+            if (!isKeyframe(i)) indicesToPredecode.push(i);
+          }
         }
 
         let idxPointer = 0;
@@ -227,14 +242,14 @@ export default function HeroSequence() {
               if (typeof requestIdleCallback !== "undefined") {
                 requestIdleCallback(decodeNext, { timeout: 100 });
               } else {
-                setTimeout(decodeNext, 10);
+                setTimeout(decodeNext, 15);
               }
             })
             .catch(() => {
               if (typeof requestIdleCallback !== "undefined") {
                 requestIdleCallback(decodeNext, { timeout: 100 });
               } else {
-                setTimeout(decodeNext, 10);
+                setTimeout(decodeNext, 15);
               }
             });
         };
@@ -312,6 +327,19 @@ export default function HeroSequence() {
       const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
       let inFlight = 0;
 
+      // Safety Timer Guard: Ensures website is NEVER stuck behind loader on mobile
+      // if network requests stall or dropped on slow connections
+      const safetyTimer = setTimeout(() => {
+        if (!readyFired && !cancelled) {
+          updateWindow(0);
+          reveal(() => {
+            resize();
+            draw(0);
+            startIdlePredecoding();
+          });
+        }
+      }, isMobile ? 3500 : 7000);
+
       const pumpQueue = () => {
         while (inFlight < CONCURRENCY && queue.length && !cancelled) {
           const i = queue.shift()!;
@@ -331,6 +359,7 @@ export default function HeroSequence() {
               loadedCount++;
               setLoadProgress(Math.min(99, Math.round((loadedCount / FRAME_COUNT) * 100)));
               if (!readyFired && loadedCount === FRAME_COUNT) {
+                clearTimeout(safetyTimer);
                 updateWindow(0);
                 if (blobs[0]) {
                   createImageBitmap(blobs[0])
@@ -365,6 +394,7 @@ export default function HeroSequence() {
       pumpQueue();
 
       return () => {
+        clearTimeout(safetyTimer);
         if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener("resize", resize);
         // .close() releases decoded pixels immediately rather than leaving it
@@ -546,12 +576,27 @@ export default function HeroSequence() {
           frames, cover-fit with ~60px overshoot at the bottom to crop the
           source watermark. */}
       <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
-        <canvas
-          ref={canvasRef}
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ display: "block" }}
-        />
+        {tier === "mobile" ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          >
+            <source src="/images/elevator-hero.webm" type="video/webm" />
+            <source src="/images/elevator-hero-720p.mp4" type="video/mp4" />
+          </video>
+        ) : (
+          <canvas
+            ref={canvasRef}
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ display: "block" }}
+          />
+        )}
 
         {/* Soft Golden Backlight Radial Glow */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_450px_at_50%_50%,rgba(201,164,75,0.08),transparent_80%)] pointer-events-none z-15" />
