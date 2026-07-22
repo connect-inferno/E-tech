@@ -22,7 +22,13 @@ export default function SmoothScrollProvider({
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
   useEffect(() => {
-    // Force scroll to top before Lenis takes over to prevent jumping to cached scroll positions
+    // Take scroll restoration away from the browser. Without this it re-applies
+    // the previous scroll position on reload/back-nav *after* our effects run,
+    // which lands the visitor mid-way through the pinned hero and reads as the
+    // page scrolling on its own.
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
     window.scrollTo(0, 0);
 
     // ── Mobile guard ──────────────────────────────────────────────────────────
