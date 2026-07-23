@@ -32,24 +32,18 @@ export default function SmoothScrollProvider({
     window.scrollTo(0, 0);
 
     // ── Mobile guard ──────────────────────────────────────────────────────────
-    // On touch devices, the OS already provides native momentum scrolling that
-    // is GPU-accelerated at the OS compositor level. Running Lenis on top adds
-    // a redundant JS scroll layer causing jitter + fighting with GSAP canvas draws.
-    // We skip Lenis entirely on mobile and rely on native scroll + ScrollTrigger.
+    // On touch devices, the OS provides native momentum scrolling at the GPU
+    // compositor level. Running Lenis on top adds a JS scroll interpolation
+    // loop that FIGHTS with the compositor, causing jank. Skip Lenis on mobile
+    // and rely on native scroll + GSAP ScrollTrigger scrub smoothing.
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
     if (isMobile) {
-      // Still connect ScrollTrigger to native scroll events
-      ScrollTrigger.normalizeScroll(false);
       return;
     }
 
-    // Instantiate Lenis smooth scroll
-    // `autoRaf: false` is CRITICAL — prevents Lenis from running its own internal
-    // requestAnimationFrame loop. Without this, Lenis is ticked twice per frame
-    // (once internally, once via gsap.ticker), causing scroll jitter and image lag.
     const lenisInstance = new Lenis({
       duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth exponential ease
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
