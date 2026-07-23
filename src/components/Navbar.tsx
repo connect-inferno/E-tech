@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMobileMenuOpen(false);
-    
+
     // If it's an anchor link and we are on the homepage, prevent reload and smooth scroll
     if (href.startsWith("/#") && pathname === "/") {
       e.preventDefault();
@@ -44,16 +44,15 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-45 transition-all duration-500 ${
-          isScrolled ? "glass-nav py-4" : "bg-transparent py-6"
-        }`}
+        className={`fixed top-0 left-0 w-full z-45 transition-all duration-500 ${isScrolled ? "glass-nav py-4" : "bg-transparent py-6"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
             onClick={(e) => handleLinkClick(e, "/")}
-            className="group select-none bg-white/95 rounded-sm px-2 py-1 shadow-sm hover:shadow-md transition-shadow"
+            className="group select-none bg-white/95 rounded-sm px-2 py-1 shadow-sm hover:shadow-md transition-shadow flex items-center gap-2"
             aria-label={siteContent.company.name}
           >
             <Image
@@ -64,6 +63,7 @@ export default function Navbar() {
               priority
               className="h-9 md:h-11 w-auto object-contain"
             />
+            <span className="text-[8px] font-mono text-gray-400 leading-none">v37</span>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -75,11 +75,10 @@ export default function Navbar() {
                   key={idx}
                   href={link.href}
                   onClick={(e) => handleLinkClick(e, link.href)}
-                  className={`luxury-link text-xs uppercase tracking-[0.2em] font-light transition-all ${
-                    isActive
+                  className={`luxury-link text-xs uppercase tracking-[0.2em] font-light transition-all ${isActive
                       ? "!text-luxury-accent font-normal"
                       : "text-luxury-text-secondary hover:text-luxury-text-primary"
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -111,9 +110,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer Overlay */}
       <div
-        className={`fixed inset-0 z-35 bg-luxury-bg/97 flex flex-col justify-center px-8 transition-all duration-500 ease-in-out md:hidden ${
-          mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-35 bg-luxury-bg/97 flex flex-col justify-center px-8 transition-all duration-500 ease-in-out md:hidden ${mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
+          }`}
       >
         <div className="flex flex-col gap-8 text-left max-w-sm">
           {siteContent.navigation.links.map((link, idx) => {
@@ -123,9 +121,8 @@ export default function Navbar() {
                 key={idx}
                 href={link.href}
                 onClick={(e) => handleLinkClick(e, link.href)}
-                className={`text-2xl font-heading font-light tracking-widest transition-colors ${
-                  isActive ? "!text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-accent"
-                }`}
+                className={`text-2xl font-heading font-light tracking-widest transition-colors ${isActive ? "!text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-accent"
+                  }`}
               >
                 {link.name}
               </Link>
