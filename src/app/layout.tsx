@@ -112,6 +112,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Resource hints — let the browser pipeline mobile assets before JS runs */}
+        {/* Poster / first frame: shown immediately on low & mobile tiers */}
+        <link
+          rel="preload"
+          as="image"
+          href="/images/elevator-sequence-webp-mobile/1.webp"
+          fetchPriority="high"
+        />
+        {/* Mobile video: preloading the mp4 shaves seconds off the "30% buffered" gate */}
+        <link
+          rel="preload"
+          as="video"
+          href="/images/elevator-hero-720p.mp4"
+          type="video/mp4"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
