@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { siteContent, ProjectItem } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -58,53 +59,51 @@ const PROJECT_DETAILS: Record<string, {
   },
   p4: {
     height: "60 Meters (18 Floors)",
-    speed: "1.5 m/s",
-    loadCapacity: "2000 kg (Bed & Stretchers)",
-    finish: "Hygienic Anti-Microbial Stainless Steel",
-    systemType: "Clinically Calibrated Bed Lift",
-    notes: "Equipped with priority code overrides and smooth acceleration curves.",
+    speed: "2.0 m/s",
+    loadCapacity: "1600 kg (21 Passengers / Stretcher)",
+    finish: "Antimicrobial Stainless Steel with soft LED paneling",
+    systemType: "Hospital Stretcher & Service Lift",
+    notes: "Equipped with priority medical override triggers and smooth acceleration curves.",
   },
   p5: {
-    height: "110 Meters (32 Floors)",
-    speed: "3.0 m/s",
-    loadCapacity: "1350 kg (18 Passengers)",
-    finish: "Textured Bronze panels and Nero Marquina Floor",
-    systemType: "Machine-Room-Less (MRL) Traction Lift",
-    notes: "Saves structural space by locating the gearless traction motor in the shaft head.",
+    height: "30 Meters (8 Floors)",
+    speed: "1.0 m/s",
+    loadCapacity: "400 kg (5 Passengers)",
+    finish: "Teak Wood Veneer with Warm Gold LED downlights",
+    systemType: "Custom Home Villa Elevator",
+    notes: "Operates ultra-quietly under 42 dB with single-phase power integration.",
   },
   p6: {
-    height: "15 Meters (4 Floors)",
-    speed: "1.0 m/s",
-    loadCapacity: "450 kg (6 Passengers)",
-    finish: "Walnut Paneling and Tufted Leather trims",
-    systemType: "Home Elevator (Single Phase)",
-    notes: "Features whisper-quiet pneumatic operations with low-clearance hoistway requirements.",
+    height: "90 Meters (30 Floors)",
+    speed: "3.0 m/s",
+    loadCapacity: "1250 kg (16 Passengers)",
+    finish: "Custom Etched Stainless Steel & Marble Inlay",
+    systemType: "Commercial High-Speed Passenger Lift",
+    notes: "Includes regenerative energy braking systems that feed power back to the grid.",
   },
 };
 
 export default function ProjectsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState<string>("All");
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
 
   useEffect(() => {
-    // Scroll to top on mount
     window.scrollTo(0, 0);
 
-    const container = containerRef.current;
-    if (!container) return;
+    const ctx = gsap.context(() => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    // Header reveal
-    const headerItems = container.querySelectorAll(".animate-header");
-    gsap.fromTo(
-      headerItems,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
-    );
+      const headerItems = container.querySelectorAll(".animate-header");
+      gsap.fromTo(
+        headerItems,
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
+      );
+    }, containerRef);
 
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
+    return () => ctx.revert();
   }, []);
 
   const filteredProjects = siteContent.projects.items.filter((project: ProjectItem) => {
@@ -116,8 +115,12 @@ export default function ProjectsPage() {
     <main ref={containerRef} className="relative w-full min-h-screen bg-luxury-bg text-luxury-text-primary">
       <Navbar />
 
+      <div className="pt-24 md:pt-28 px-6 md:px-12 max-w-7xl mx-auto w-full relative z-20">
+        <Breadcrumbs />
+      </div>
+
       {/* Hero Header */}
-      <section className="relative pt-36 pb-20 md:pt-48 md:pb-28 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
+      <section className="relative pt-6 pb-20 md:pt-10 md:pb-28 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
         {/* Aesthetic grid overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-luxury-accent/3 rounded-full blur-[120px] pointer-events-none" />

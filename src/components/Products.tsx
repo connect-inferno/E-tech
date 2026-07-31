@@ -20,10 +20,10 @@ const PRODUCT_IMAGES: Record<string, string> = {
   hospital: "/images/hospitle_elevator__2.jpg",
   hydraulic: "/images/hydraulic_elevator_in_building_1.jpg",
   mrl: "/images/MRL_elevator_in_building__2.jpg",
-  geared: "/images/passenger_elavtor__1.jpg",
-  gearless: "/images/MRL_elevator_in_building__2.jpg",
-  goods: "/images/hospitle_elevator__2.jpg",
-  car: "/images/hydraulic_elevator_in_building_1.jpg",
+  escalator: "/images/escalator.jpg",
+  traveleator: "/images/traveleator.png",
+  goods: "/images/goods_elevator.png",
+  car: "/images/car_elevator.png",
 };
 
 export default function Products() {
