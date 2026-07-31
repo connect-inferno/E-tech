@@ -1,21 +1,28 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import * as Icons from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { siteContent } from "@/data/siteContent";
+import { CheckCircle, ShieldCheck, Award, Cpu, Zap, Headphones, Circle } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CheckCircle, ShieldCheck } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const getIcon = (name: string) => {
-  const I = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name];
-  return I ?? Icons.Circle;
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  ShieldCheck,
+  Award,
+  Cpu,
+  Zap,
+  Headphones,
+};
+
+const getIcon = (iconName: string) => {
+  return ICON_MAP[iconName] || Circle;
 };
 
 export default function AboutPage() {
@@ -25,96 +32,100 @@ export default function AboutPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const container = containerRef.current;
-    if (!container) return;
+    const ctx = gsap.context(() => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const headerItems = container.querySelectorAll(".animate-header");
-    gsap.fromTo(
-      headerItems,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
-    );
+      const headerItems = container.querySelectorAll(".animate-header");
+      gsap.fromTo(
+        headerItems,
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
+      );
 
-    const cards = container.querySelectorAll(".value-card");
-    gsap.fromTo(
-      cards,
-      { opacity: 0, y: 40 },
-      {
-        opacity: 1,
-        y: 0,
-        stagger: 0.1,
-        duration: 1.0,
-        ease: "power2.out",
-        scrollTrigger: { trigger: ".values-grid", start: "top 80%" },
-      }
-    );
-
-    const milestones = container.querySelectorAll(".milestone-item");
-    gsap.fromTo(
-      milestones,
-      { opacity: 0, x: -30 },
-      {
-        opacity: 1,
-        x: 0,
-        stagger: 0.12,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: { trigger: ".milestones-container", start: "top 80%" },
-      }
-    );
-
-    const perfBlocks = container.querySelectorAll(".perf-block");
-    gsap.fromTo(
-      perfBlocks,
-      { opacity: 0, y: 20 },
-      {
-        opacity: 1,
-        y: 0,
-        stagger: 0.08,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: { trigger: ".perf-grid", start: "top 85%" },
-      }
-    );
-
-    const stats = statsRef.current;
-    if (stats) {
-      const statBlocks = stats.querySelectorAll(".stat-block");
-      statBlocks.forEach((block) => {
-        const numberEl = block.querySelector(".stat-number");
-        if (!numberEl) return;
-        const target = parseFloat(numberEl.getAttribute("data-target") || "0");
-        const suffix = numberEl.getAttribute("data-suffix") || "";
-        const countObj = { value: 0 };
-        gsap.to(countObj, {
-          value: target,
-          duration: 2.0,
+      const cards = container.querySelectorAll(".value-card");
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.1,
+          duration: 1.0,
           ease: "power2.out",
-          scrollTrigger: { trigger: block, start: "top 85%", toggleActions: "play none none none" },
-          onUpdate: () => {
-            if (numberEl) {
-              if (target % 1 === 0) {
-                numberEl.textContent = Math.floor(countObj.value).toString() + suffix;
-              } else {
-                numberEl.textContent = countObj.value.toFixed(1) + suffix;
-              }
-            }
-          },
-        });
-      });
-    }
+          scrollTrigger: { trigger: ".values-grid", start: "top 80%" },
+        }
+      );
 
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
+      const milestones = container.querySelectorAll(".milestone-item");
+      gsap.fromTo(
+        milestones,
+        { opacity: 0, x: -30 },
+        {
+          opacity: 1,
+          x: 0,
+          stagger: 0.12,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".milestones-container", start: "top 80%" },
+        }
+      );
+
+      const perfBlocks = container.querySelectorAll(".perf-block");
+      gsap.fromTo(
+        perfBlocks,
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.08,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: { trigger: ".perf-grid", start: "top 85%" },
+        }
+      );
+
+      const stats = statsRef.current;
+      if (stats) {
+        const statBlocks = stats.querySelectorAll(".stat-block");
+        statBlocks.forEach((block) => {
+          const numberEl = block.querySelector(".stat-number");
+          if (!numberEl) return;
+          const target = parseFloat(numberEl.getAttribute("data-target") || "0");
+          const suffix = numberEl.getAttribute("data-suffix") || "";
+          const countObj = { value: 0 };
+          gsap.to(countObj, {
+            value: target,
+            duration: 2.0,
+            ease: "power2.out",
+            scrollTrigger: { trigger: block, start: "top 85%", toggleActions: "play none none none" },
+            onUpdate: () => {
+              if (numberEl) {
+                if (target % 1 === 0) {
+                  numberEl.textContent = Math.floor(countObj.value).toString() + suffix;
+                } else {
+                  numberEl.textContent = countObj.value.toFixed(1) + suffix;
+                }
+              }
+            },
+          });
+        });
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
     <main ref={containerRef} className="relative w-full min-h-screen bg-luxury-bg text-luxury-text-primary">
       <Navbar />
 
+      <div className="pt-24 md:pt-28 px-6 md:px-12 max-w-7xl mx-auto w-full relative z-20">
+        <Breadcrumbs />
+      </div>
+
       {/* Hero Header */}
-      <section className="relative pt-36 pb-20 md:pt-48 md:pb-28 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
+      <section className="relative pt-6 pb-20 md:pt-10 md:pb-28 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-luxury-accent/3 rounded-full blur-[120px] pointer-events-none" />
 
@@ -134,23 +145,23 @@ export default function AboutPage() {
 
       {/* Leadership Team Section */}
       <section className="py-20 md:py-28 px-6 md:px-12 bg-luxury-card/10 border-b border-white/5">
-        <div className="max-w-7xl mx-auto space-y-16">
+        <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center space-y-4 max-w-xl mx-auto">
             <span className="text-xs uppercase tracking-[0.4em] text-luxury-accent font-semibold">Leadership</span>
             <h2 className="text-3xl md:text-4xl font-heading font-light tracking-tight text-luxury-text-primary">
-              Meet the Founder
+              Our Executive Team
             </h2>
             <div className="w-16 h-[1px] bg-luxury-accent/30 mx-auto mt-4" />
           </div>
 
-          <div className="max-w-3xl mx-auto">
+          <div className="space-y-8 max-w-4xl mx-auto">
             {/* Founder & CEO */}
             <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
               <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
                 <img
                   src="/images/vivek.png"
                   alt="Vivek Borkar"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>
@@ -170,6 +181,67 @@ export default function AboutPage() {
                 <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
                   Driving operational excellence, engineering standards, digital service reporting and premium AMC service delivery.
                 </p>
+              </div>
+            </div>
+
+            {/* COO & MD Grid Below Founder */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Shrikant Raundhal / COO */}
+              <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col items-stretch">
+                <div className="w-full aspect-[4/5] relative overflow-hidden shrink-0">
+                  <img
+                    src="/images/shrikant.png"
+                    alt="Shrikant Raundhal"
+                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="flex flex-col justify-center p-6 space-y-2.5 text-center md:text-left">
+                  <div>
+                    <h3 className="text-lg md:text-xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                      Shrikant Raundhal
+                    </h3>
+                    <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                      Chief Operating Officer (COO)
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                    E-Tech Elevator, Pune, Maharashtra.
+                  </p>
+                  <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                  <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                    Leading field operations, service execution, technical teams, and ensuring seamless project delivery across Maharashtra.
+                  </p>
+                </div>
+              </div>
+
+              {/* Akash Dokhale / MD */}
+              <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col items-stretch">
+                <div className="w-full aspect-[4/5] relative overflow-hidden shrink-0">
+                  <img
+                    src="/images/akash.png"
+                    alt="Akash Dokhale"
+                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="flex flex-col justify-center p-6 space-y-2.5 text-center md:text-left">
+                  <div>
+                    <h3 className="text-lg md:text-xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                      Akash Dokhale
+                    </h3>
+                    <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                      Managing Director (MD)
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                    E-Tech Elevator, Pune, Maharashtra.
+                  </p>
+                  <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                  <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                    Overseeing strategic growth, client partnerships, modernization portfolio management, and company expansion.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

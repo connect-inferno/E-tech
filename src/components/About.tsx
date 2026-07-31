@@ -12,14 +12,10 @@ if (typeof window !== "undefined") {
 
 export default function About() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const imageContainer = imageContainerRef.current;
-    const image = imageRef.current;
     const stats = statsRef.current;
     if (!section) return;
 
@@ -43,23 +39,7 @@ export default function About() {
       }
     );
 
-    // Image Parallax scroll effect
-    if (imageContainer && image) {
-      gsap.fromTo(
-        image,
-        { yPercent: -15 },
-        {
-          yPercent: 15,
-          ease: "none",
-          scrollTrigger: {
-            trigger: imageContainer,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        }
-      );
-    }
+
 
     // Numbers count-up scroll trigger
     if (stats) {
@@ -99,7 +79,7 @@ export default function About() {
 
     return () => {
       ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === section || t.trigger === imageContainer || (stats && stats.contains(t.trigger as Node))) {
+        if (t.trigger === section || (stats && stats.contains(t.trigger as Node))) {
           t.kill();
         }
       });
@@ -169,22 +149,31 @@ export default function About() {
           </div>
         </div>
 
-        {/* Right Column: Architectural Visualizer */}
+        {/* Right Column: Founder & Leadership Visualizer */}
         <div className="w-full lg:w-1/2 flex justify-center">
           <div
-            ref={imageContainerRef}
-            className="parallax-container relative w-full aspect-[4/5] max-w-md md:max-w-lg overflow-hidden border border-white/10 rounded-sm shadow-2xl bg-luxury-card"
+            className="relative w-full aspect-[4/5] max-w-md md:max-w-lg overflow-hidden border border-luxury-accent/30 rounded-sm shadow-2xl bg-luxury-card group"
           >
-            {/* Dark vignette overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-luxury-bg via-transparent to-transparent opacity-80 z-10" />
-            <div className="absolute inset-0 bg-black/10 z-10" />
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-90 z-10 pointer-events-none" />
             <img
-              ref={imageRef}
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200"
-              alt="Luxury Architecture"
-              className="gpu-img absolute top-0 left-0 w-full h-[130%] object-cover select-none pointer-events-none scale-105"
+              src="/images/vivek.png"
+              alt="Vivek Borkar - Founder & CEO"
+              className="w-full h-full object-cover object-center select-none pointer-events-none transition-transform duration-700 group-hover:scale-105"
               decoding="async"
             />
+            {/* Leadership Caption Badge */}
+            <div className="absolute bottom-6 left-6 right-6 z-20 space-y-1 bg-black/70 backdrop-blur-md p-4 border border-white/10 rounded-sm">
+              <h3 className="text-lg font-heading font-light text-luxury-text-primary tracking-wide">
+                Vivek Borkar
+              </h3>
+              <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                Founder &amp; CEO
+              </p>
+              <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest font-light">
+                E-Tech Elevators • Pune, Maharashtra
+              </p>
+            </div>
           </div>
         </div>
       </div>
