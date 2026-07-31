@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import CrmForm from "@/components/CrmForm";
 import { siteContent } from "@/data/siteContent";
 import gsap from "gsap";
@@ -29,26 +30,26 @@ export default function ContactPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const container = containerRef.current;
-    if (!container) return;
+    const ctx = gsap.context(() => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const headerItems = container.querySelectorAll(".animate-header");
-    gsap.fromTo(
-      headerItems,
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
-    );
+      const headerItems = container.querySelectorAll(".animate-header");
+      gsap.fromTo(
+        headerItems,
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power3.out" }
+      );
 
-    const panels = container.querySelectorAll(".animate-panel");
-    gsap.fromTo(
-      panels,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, stagger: 0.2, duration: 1.0, ease: "power2.out" }
-    );
+      const panels = container.querySelectorAll(".animate-panel");
+      gsap.fromTo(
+        panels,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, stagger: 0.2, duration: 1.0, ease: "power2.out" }
+      );
+    }, containerRef);
 
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
+    return () => ctx.revert();
   }, []);
 
   const info = siteContent.contact.info;
@@ -59,8 +60,12 @@ export default function ContactPage() {
     <main ref={containerRef} className="relative w-full min-h-screen bg-luxury-bg text-luxury-text-primary">
       <Navbar />
 
+      <div className="pt-24 md:pt-28 px-6 md:px-12 max-w-7xl mx-auto w-full relative z-20">
+        <Breadcrumbs />
+      </div>
+
       {/* Hero Header */}
-      <section className="relative pt-36 pb-16 md:pt-48 md:pb-24 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
+      <section className="relative pt-6 pb-16 md:pt-10 md:pb-24 px-6 md:px-12 border-b border-white/5 overflow-hidden flex flex-col items-center text-center">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-luxury-accent/3 rounded-full blur-[120px] pointer-events-none" />
 

@@ -54,7 +54,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: siteContent.metadata.title,
     description: siteContent.metadata.description,
-    creator: '@etechelevators',
     images: ['/og-image.jpg'],
   },
   icons: {
