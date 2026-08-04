@@ -22,6 +22,10 @@ const PROJECT_IMAGES: Record<string, string> = {
   p4: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=600",
   p5: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600",
   p6: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600",
+  p11: "https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=600",
+  p12: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=600",
+  p13: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=600",
+  p14: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600",
 };
 
 // Custom Case Specifications for each project
@@ -80,6 +84,38 @@ const PROJECT_DETAILS: Record<string, {
     finish: "Custom Etched Stainless Steel & Marble Inlay",
     systemType: "Commercial High-Speed Passenger Lift",
     notes: "Includes regenerative energy braking systems that feed power back to the grid.",
+  },
+  p11: {
+    height: "Residential Specification",
+    speed: "1.0 - 1.5 m/s",
+    loadCapacity: "400 - 800 kg",
+    finish: "Premium Stainless Steel",
+    systemType: "Residential Passenger Lift",
+    notes: "Installed at Sanklecha Mango Woods.",
+  },
+  p12: {
+    height: "Residential Specification",
+    speed: "1.0 - 1.5 m/s",
+    loadCapacity: "400 - 800 kg",
+    finish: "Premium Stainless Steel",
+    systemType: "Residential Passenger Lift",
+    notes: "Installed at Kool Homes Signature.",
+  },
+  p13: {
+    height: "Residential Specification",
+    speed: "1.0 - 1.5 m/s",
+    loadCapacity: "400 - 800 kg",
+    finish: "Premium Stainless Steel",
+    systemType: "Residential Passenger Lift",
+    notes: "Installed at Mantra Residency.",
+  },
+  p14: {
+    height: "Residential Specification",
+    speed: "1.0 - 1.5 m/s",
+    loadCapacity: "400 - 800 kg",
+    finish: "Premium Stainless Steel",
+    systemType: "Residential Passenger Lift",
+    notes: "Installed at GDS Capital City.",
   },
 };
 
@@ -237,18 +273,20 @@ export default function ProjectsPage() {
       {/* Case Study Details Modal */}
       {selectedProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none">
-          <div className="relative bg-luxury-card border border-white/10 rounded-sm w-full max-w-4xl max-h-[90vh] overflow-y-auto p-8 md:p-12 space-y-8 no-scrollbar">
+          <div className="relative bg-luxury-card border border-white/10 rounded-sm w-full max-w-4xl max-h-[90vh] flex flex-col">
             {/* Close Button */}
             <button
               onClick={() => setSelectedProject(null)}
-              className="absolute top-6 right-6 text-luxury-text-secondary hover:text-luxury-accent transition-colors text-2xl font-light focus:outline-none"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-luxury-text-secondary hover:text-luxury-accent transition-colors text-2xl font-light focus:outline-none z-10"
             >
               ✕
             </button>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-              {/* Media frame */}
-              <div className="space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                {/* Media frame */}
+                <div className="space-y-4">
                 <div className="relative aspect-[4/5] rounded-sm overflow-hidden border border-white/10 shadow-2xl">
                   <img
                     src={PROJECT_IMAGES[selectedProject.id] || PROJECT_IMAGES.p1}
@@ -340,8 +378,23 @@ export default function ProjectsPage() {
                     {PROJECT_DETAILS[selectedProject.id]?.notes || "Triple redundancy brake configuration."}
                   </p>
                 </div>
+              </div>
+            </div>
+            </div>
 
-                <div className="pt-6 flex flex-col sm:flex-row gap-4 border-t border-white/5">
+            {/* Fixed Footer for Actions */}
+            <div className="p-6 md:px-10 md:py-6 border-t border-white/10 bg-luxury-card shrink-0 rounded-b-sm">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {selectedProject.link ? (
+                  <a
+                    href={selectedProject.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="luxury-btn flex-1 text-center py-3.5 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2"
+                  >
+                    View Project Online <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
                   <button
                     onClick={() => {
                       setSelectedProject(null);
@@ -356,13 +409,13 @@ export default function ProjectsPage() {
                   >
                     Inquire for Similar Setup <ArrowUpRight className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    onClick={() => setSelectedProject(null)}
-                    className="border border-white/10 hover:bg-white/5 transition-all rounded-sm flex-1 text-center py-3.5 text-xs text-luxury-text-primary uppercase tracking-[0.2em] font-medium"
-                  >
-                    Close Details
-                  </button>
-                </div>
+                )}
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="border border-white/10 hover:bg-white/5 transition-all rounded-sm flex-1 text-center py-3.5 text-xs text-luxury-text-primary uppercase tracking-[0.2em] font-medium"
+                >
+                  Close Details
+                </button>
               </div>
             </div>
           </div>
