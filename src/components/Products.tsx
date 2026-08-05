@@ -11,16 +11,19 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Map key to curated Unsplash images
+// Map product id → image asset. Some product types share visual references
+// where no dedicated photo exists yet — replace with dedicated shots later.
 const PRODUCT_IMAGES: Record<string, string> = {
   passenger: "/images/passenger_elavtor__1.jpg",
   capsule: "/images/capsule_elevator__2.jpg",
-  glass: "/images/glass_elevators_2.jpg",
   home: "/images/home_elevators_2.jpg",
   hospital: "/images/hospitle_elevator__2.jpg",
   hydraulic: "/images/hydraulic_elevator_in_building_1.jpg",
   mrl: "/images/MRL_elevator_in_building__2.jpg",
-  escalators: "/images/escalator.jpg",
+  escalator: "/images/escalator.jpg",
+  traveleator: "/images/traveleator.png",
+  goods: "/images/goods_elevator.png",
+  car: "/images/car_elevator.png",
 };
 
 export default function Products() {
@@ -172,12 +175,13 @@ export default function Products() {
               </div>
 
               {/* Central stylized image backdrop */}
-              <div className="relative w-full h-1/2 my-6 overflow-hidden rounded-sm border border-white/5 bg-black/40 z-20">
+              <div className="relative w-full h-1/2 my-6 overflow-hidden rounded-sm border border-white/5 bg-black/40 z-20" style={{ willChange: 'transform' }}>
                 <img
                   src={PRODUCT_IMAGES[product.image] || PRODUCT_IMAGES.passenger}
                   alt={product.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="gpu-img w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   loading="lazy"
+                  decoding="async"
                 />
                 {/* Dark overlay inside image */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80" />

@@ -3,12 +3,16 @@ import React, { useEffect, useState } from "react";
 import { siteContent } from "@/data/siteContent";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useLenisInstance } from "@/components/SmoothScrollProvider";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const lenis = useLenisInstance();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,47 +23,64 @@ export default function Navbar() {
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMobileMenuOpen(false);
-    
-    // If it's an anchor link and we are on the homepage, prevent reload and smooth scroll
-    if (href.startsWith("/#") && pathname === "/") {
-      e.preventDefault();
+
+    // Anchor link handling
+    if (href.startsWith("/#")) {
       const targetId = href.substring(2);
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: "smooth" });
+      if (pathname === "/") {
+        e.preventDefault();
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          if (lenis) {
+            lenis.scrollTo(targetElement, { duration: 0.6 });
+          } else {
+            targetElement.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      } else {
+        e.preventDefault();
+        router.push("/contact");
       }
     } else if (href === "/" && pathname === "/") {
       e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (lenis) {
+        lenis.scrollTo(0, { duration: 0.4 });
+      } else {
+        window.scrollTo({ top: 0, behavior: "instant" as any });
+      }
     }
   };
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-45 transition-all duration-500 ${
-          isScrolled ? "glass-nav py-4" : "bg-transparent py-6"
-        }`}
+        className={`fixed top-0 left-0 w-full z-45 transition-all duration-300 ${isScrolled ? "glass-nav py-4" : "bg-transparent py-6"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
+            prefetch={true}
             onClick={(e) => handleLinkClick(e, "/")}
-            className="flex flex-col text-left group select-none"
+            className="group select-none bg-white/95 rounded-sm px-2 py-1 shadow-sm hover:shadow-md transition-shadow flex items-center gap-2"
+            aria-label={siteContent.company.name}
           >
-            <span className="text-lg md:text-xl font-heading font-extralight tracking-[0.3em] text-luxury-text-primary transition-colors duration-300 group-hover:text-luxury-accent">
-              {siteContent.company.logoText}
-            </span>
-            <span className="text-[7px] md:text-[8px] tracking-[0.2em] uppercase text-luxury-text-secondary">
-              E L E V A T O R S
-            </span>
+            <Image
+              src="/images/etech-logo.png"
+              alt={siteContent.company.name}
+              width={90}
+              height={58}
+              priority
+              className="h-9 md:h-11 w-auto object-contain"
+            />
+            <span className="text-[8px] font-mono text-gray-400 leading-none">v37</span>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -70,12 +91,12 @@ export default function Navbar() {
                 <Link
                   key={idx}
                   href={link.href}
+                  prefetch={true}
                   onClick={(e) => handleLinkClick(e, link.href)}
-                  className={`luxury-link text-xs uppercase tracking-[0.2em] font-light transition-all ${
-                    isActive
+                  className={`luxury-link text-xs uppercase tracking-[0.2em] font-light transition-all ${isActive
                       ? "!text-luxury-accent font-normal"
                       : "text-luxury-text-secondary hover:text-luxury-text-primary"
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -86,7 +107,8 @@ export default function Navbar() {
           {/* Action CTA Button */}
           <div className="hidden md:block">
             <Link
-              href="/#contact"
+              href="/contact"
+              prefetch={true}
               onClick={(e) => handleLinkClick(e, "/#contact")}
               className="luxury-btn px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium"
             >
@@ -107,9 +129,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer Overlay */}
       <div
-        className={`fixed inset-0 z-35 bg-luxury-bg/97 flex flex-col justify-center px-8 transition-all duration-500 ease-in-out md:hidden ${
-          mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
-        }`}
+        className={`fixed inset-0 z-35 bg-luxury-bg/97 flex flex-col justify-center px-8 transition-all duration-300 ease-in-out md:hidden ${mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full pointer-events-none"
+          }`}
       >
         <div className="flex flex-col gap-8 text-left max-w-sm">
           {siteContent.navigation.links.map((link, idx) => {
@@ -118,17 +139,18 @@ export default function Navbar() {
               <Link
                 key={idx}
                 href={link.href}
+                prefetch={true}
                 onClick={(e) => handleLinkClick(e, link.href)}
-                className={`text-2xl font-heading font-light tracking-widest transition-colors ${
-                  isActive ? "!text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-accent"
-                }`}
+                className={`text-2xl font-heading font-light tracking-widest transition-colors ${isActive ? "!text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-accent"
+                  }`}
               >
                 {link.name}
               </Link>
             );
           })}
           <Link
-            href="/#contact"
+            href="/contact"
+            prefetch={true}
             onClick={(e) => handleLinkClick(e, "/#contact")}
             className="luxury-btn inline-block text-center mt-6 px-8 py-3 text-xs uppercase tracking-[0.2em] font-medium"
           >

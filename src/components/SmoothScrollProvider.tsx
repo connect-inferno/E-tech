@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, createContext, useContext } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -20,17 +21,46 @@ export default function SmoothScrollProvider({
   children: React.ReactNode;
 }) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Instantiate Lenis smooth scroll
+    // Take scroll restoration away from the browser.
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    // Reset window scroll immediately on route change
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    }
+
+    const rafId = requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [pathname, lenis]);
+
+  useEffect(() => {
+    // ── Mobile guard ──────────────────────────────────────────────────────────
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+    if (isMobile) {
+      return;
+    }
+
     const lenisInstance = new Lenis({
-      duration: 1.4,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Smooth exponential ease
+      duration: 0.8,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      touchMultiplier: 1.2,
+      autoRaf: true,
     });
 
     setLenis(lenisInstance);
@@ -38,18 +68,8 @@ export default function SmoothScrollProvider({
     // Connect Lenis to ScrollTrigger
     lenisInstance.on("scroll", ScrollTrigger.update);
 
-    // Sync GSAP ticker with Lenis requestAnimationFrame
-    const updateTicker = (time: number) => {
-      lenisInstance.raf(time * 1000);
-    };
-    gsap.ticker.add(updateTicker);
-
-    // Disable lag smoothing to prevent frame synchronization issues during rendering
-    gsap.ticker.lagSmoothing(0);
-
     return () => {
       lenisInstance.destroy();
-      gsap.ticker.remove(updateTicker);
       setLenis(null);
     };
   }, []);
@@ -60,3 +80,4 @@ export default function SmoothScrollProvider({
     </SmoothScrollContext.Provider>
   );
 }
+

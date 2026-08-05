@@ -8,38 +8,44 @@ import { ArrowDown } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
-// Configurable crop values in pixels (relative to the raw source frame size)
-const CROP_CONFIG = {
-  top: 0,
-  bottom: 60, // 60px crop at the bottom to hide the Gemini watermark
-  left: 0,
-  right: 0,
-};
+// ── Asset paths ──────────────────────────────────────────────────────────────
+const MOBILE_VIDEO_SRC = "/images/elevator-allkeyframe-mobile.mp4";
+const DESKTOP_VIDEO_SRC = "/images/elevator-allkeyframe-desktop.mp4";
 
-const TOTAL_FRAMES = 240;
+type DeviceTier = "" | "mobile" | "desktop";
 
 export default function HeroSequence() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [tier, setTier] = useState<DeviceTier>("");
+  const [isReady, setIsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const currentFrameIndexRef = useRef<number>(1);
 
   // Helper function to format image filename path
   const getFrameUrl = (frameNumber: number) => {
     return `/images/elevator_frames_240_new/${frameNumber}.jpg`;
   };
+  // ── Tier detection ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    if (coarse || window.innerWidth < 768) {
+      setTier("mobile");
+    } else {
+      setTier("desktop");
+    }
+  }, []);
 
-  // Helper to wrap "Safety" and "Trust" in accent-colored spans
   const highlightAccents = (text: string) => {
     if (!text) return "";
     const parts = text.split(/(Safety|Trust)/g);
     return parts.map((part, i) =>
       part === "Safety" || part === "Trust" ? (
-        <span key={i} className="text-[#C9A44B] font-semibold">{part}</span>
+        <span key={i} className="text-[#C9A44B] font-semibold">
+          {part}
+        </span>
       ) : (
         part
       )
@@ -47,271 +53,239 @@ export default function HeroSequence() {
   };
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!tier) return;
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container || !video) return;
 
-    let isComponentMounted = true;
-    const images: HTMLImageElement[] = [];
-    imagesRef.current = images;
+    let isCancelled = false;
+    let duration = 10; // Default 10s duration
 
-    // Phase 1: Preload the first 20 frames immediately to render the initial state rapidly
-    const criticalFrameCount = 20;
-    let criticalLoadedCount = 0;
-    let totalLoadedCount = 0;
+    // Set src based on device tier
+    video.src = tier === "mobile" ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
+    video.load();
 
-    const drawFrame = (index: number) => {
-      const img = images[index - 1];
-      if (!img || !img.complete) return;
-
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-
-      // Extract raw measurements
-      const rawWidth = img.naturalWidth;
-      const rawHeight = img.naturalHeight;
-
-      // Apply crop margins to the source image dimensions
-      const sx = CROP_CONFIG.left;
-      const sy = CROP_CONFIG.top;
-      const sw = rawWidth - CROP_CONFIG.left - CROP_CONFIG.right;
-      const sh = rawHeight - CROP_CONFIG.top - CROP_CONFIG.bottom;
-
-      // Perform a cover scale computation for the cropped source box relative to target canvas
-      const croppedRatio = sw / sh;
-      const canvasRatio = canvasWidth / canvasHeight;
-
-      let dx = 0;
-      let dy = 0;
-      let dw = canvasWidth;
-      let dh = canvasHeight;
-
-      if (canvasRatio > croppedRatio) {
-        // Canvas is wider than the cropped source image
-        dh = canvasWidth / croppedRatio;
-        dy = (canvasHeight - dh) / 2;
-      } else {
-        // Canvas is taller than the cropped source image
-        dw = canvasHeight * croppedRatio;
-        dx = (canvasWidth - dw) / 2;
-      }
-
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-      currentFrameIndexRef.current = index;
-    };
-
-    const handleResize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-
-      // Scale context back to normal coordinates but render with high density
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-
-      // Draw last current frame to retain render state
-      drawFrame(currentFrameIndexRef.current);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    const onFrameLoaded = (index: number, isCritical: boolean) => {
-      if (!isComponentMounted) return;
-
-      totalLoadedCount++;
-      const progress = Math.round((totalLoadedCount / TOTAL_FRAMES) * 100);
-      setLoadProgress(progress);
-
-      if (isCritical) {
-        criticalLoadedCount++;
-        if (criticalLoadedCount === criticalFrameCount) {
-          // Trigger initial canvas resize and first frame draw immediately
-          handleResize();
-          drawFrame(1);
+    // ── Preloading engine ────────────────────────────────────────────────────
+    const handleProgress = () => {
+      if (isCancelled) return;
+      if (video.buffered.length > 0 && video.duration) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const pct = Math.min(100, Math.round((bufferedEnd / video.duration) * 100));
+        setLoadProgress(pct);
+        if (pct >= 95) {
+          onReady();
         }
       }
-
-      if (totalLoadedCount === TOTAL_FRAMES) {
-        setIsLoaded(true);
-        // Setup GSAP animation scroll link once all frames are in cache memory
-        setupScrollAnimation();
-      }
     };
 
-    // Begin background preloading queue
-    for (let i = 1; i <= TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.src = getFrameUrl(i);
-      const isCritical = i <= criticalFrameCount;
-      img.onload = () => onFrameLoaded(i, isCritical);
-      img.onerror = () => {
-        console.warn(`Failed loading frame: ${i}. Proceeding with fallback progress.`);
-        onFrameLoaded(i, isCritical); // Prevent loader from freezing
+    const handleLoadedMetadata = () => {
+      if (video.duration) {
+        duration = video.duration;
+      }
+      setLoadProgress(30);
+    };
+
+    const handleCanPlayThrough = () => {
+      setLoadProgress(100);
+      onReady();
+    };
+
+    let readyFired = false;
+    const onReady = () => {
+      if (readyFired || isCancelled) return;
+      readyFired = true;
+      setLoadProgress(100);
+
+      // Force video to seek to 0 initially
+      video.currentTime = 0;
+
+      setTimeout(() => {
+        if (isCancelled) return;
+        setIsReady(true);
+        startScrubLoop();
+        setupAnimation();
+      }, 300);
+    };
+
+    video.addEventListener("progress", handleProgress);
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("canplaythrough", handleCanPlayThrough);
+
+    // Safety fallback (maximum 3.5s wait)
+    const safetyTimer = setTimeout(() => {
+      if (!readyFired && !isCancelled) {
+        onReady();
+      }
+    }, 3500);
+
+    // ── Smooth Seek RAF Loop ──────────────────────────────────────────────────
+    let targetTime = 0;
+    let currentTime = 0;
+    let rafId = 0;
+    let isSeeking = false;
+
+    const startScrubLoop = () => {
+      const lerpFactor = tier === "mobile" ? 0.15 : 0.2;
+
+      const loop = () => {
+        if (isCancelled) return;
+
+        const diff = targetTime - currentTime;
+        if (Math.abs(diff) > 0.001) {
+          currentTime += diff * lerpFactor;
+        } else {
+          currentTime = targetTime;
+        }
+
+        // Fast zero-delay seek because video is encoded All-Intra (every frame is a keyframe!)
+        if (!isSeeking && Math.abs(video.currentTime - currentTime) > 0.01) {
+          isSeeking = true;
+          video.currentTime = Math.min(duration - 0.01, Math.max(0, currentTime));
+        }
+
+        rafId = requestAnimationFrame(loop);
       };
-      images.push(img);
-    }
 
-    function setupScrollAnimation() {
-      if (!containerRef.current || !canvasRef.current) return;
+      video.addEventListener("seeked", () => {
+        isSeeking = false;
+      });
 
-      const frameObj = { index: 1 };
+      rafId = requestAnimationFrame(loop);
+    };
 
-      // Create a master timeline that binds the sequence and overlay animations
+    // ── Scroll Animation Setup ───────────────────────────────────────────────
+    let animationTimeline: gsap.core.Timeline | null = null;
+
+    function setupAnimation() {
+      if (isCancelled || !container) return;
+
+      ScrollTrigger.config({ ignoreMobileResize: true });
+
+      const pinDistance = tier === "mobile" ? "+=450%" : "+=600%";
+
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: containerRef.current,
+          trigger: container,
           start: "top top",
-          end: "+=600%", // Pin and scrub for 6 viewports of scroll distance
+          end: pinDistance,
           pin: true,
           pinSpacing: true,
-          scrub: 1.2, // Smooth interpolation easing
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          scrub: 0, // RAF loop handles butter-smooth lerp seeking
+          onUpdate: (self) => {
+            targetTime = self.progress * duration;
+          },
+          onToggle: (self) => {
+            document.documentElement.classList.toggle("hide-scrollbar", self.isActive);
+          },
         },
       });
 
-      // 1. Frame Index scrubbing (0% to 100% timeline progress)
-      tl.to(frameObj, {
-        index: TOTAL_FRAMES,
-        ease: "none",
-        duration: 100,
-        onUpdate: () => {
-          drawFrame(Math.round(frameObj.index));
-        },
-      }, 0);
+      animationTimeline = tl;
 
-      // 2. Phase 1 Text: Fades out (0 to 15)
-      tl.to(".phase-1-text", {
-        opacity: 0,
-        y: -50,
-        filter: "blur(10px)",
-        ease: "power1.in",
-        duration: 15,
-      }, 0);
+      tl.to(".phase-1-text", { opacity: 0, y: -50, ease: "power1.in", duration: 15 }, 0);
 
-      // 3. Phase 2 Text: Fades in (15 to 23) and out (32 to 40)
-      tl.fromTo(".phase-2-text",
-        { opacity: 0, y: 50, filter: "blur(10px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", ease: "power2.out", duration: 8 },
-        15
-      );
-      tl.to(".phase-2-text", {
-        opacity: 0,
-        y: -50,
-        filter: "blur(10px)",
-        ease: "power2.in",
-        duration: 8,
-      }, 32);
+      tl.fromTo(".phase-2-text", { opacity: 0, y: 50 }, { opacity: 1, y: 0, ease: "power2.out", duration: 8 }, 15);
+      tl.to(".phase-2-text", { opacity: 0, y: -50, ease: "power2.in", duration: 8 }, 32);
 
-      // 4. Phase 3 Text: Fades in (40 to 48) and out (57 to 65)
-      tl.fromTo(".phase-3-text",
-        { opacity: 0, y: 50, filter: "blur(10px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", ease: "power2.out", duration: 8 },
-        40
-      );
-      tl.to(".phase-3-text", {
-        opacity: 0,
-        y: -50,
-        filter: "blur(10px)",
-        ease: "power2.in",
-        duration: 8,
-      }, 57);
+      tl.fromTo(".phase-3-text", { opacity: 0, y: 50 }, { opacity: 1, y: 0, ease: "power2.out", duration: 8 }, 40);
+      tl.to(".phase-3-text", { opacity: 0, y: -50, ease: "power2.in", duration: 8 }, 57);
 
-      // 5. Phase 4 Text: Fades in (65 to 73) and out (80 to 88)
-      tl.fromTo(".phase-4-text",
-        { opacity: 0, y: 50, filter: "blur(10px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", ease: "power2.out", duration: 8 },
-        65
-      );
-      tl.fromTo(".phase-4-li",
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, stagger: 1.0, ease: "power1.out", duration: 8 },
-        65
-      );
-      tl.to([".phase-4-text", ".phase-4-li"], {
-        opacity: 0,
-        y: -50,
-        filter: "blur(10px)",
-        ease: "power2.in",
-        duration: 8,
-      }, 80);
+      tl.fromTo(".phase-4-text", { opacity: 0, y: 50 }, { opacity: 1, y: 0, ease: "power2.out", duration: 8 }, 65);
+      tl.fromTo(".phase-4-li", { opacity: 0, x: -30 }, { opacity: 1, x: 0, stagger: 1.0, ease: "power1.out", duration: 8 }, 65);
+      tl.to([".phase-4-text", ".phase-4-li"], { opacity: 0, y: -50, ease: "power2.in", duration: 8 }, 80);
 
-      // 6. Phase 5 Text: Fades in (88 to 95)
-      tl.fromTo(".phase-5-text",
-        { opacity: 0, y: 50, filter: "blur(10px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", ease: "power2.out", duration: 7 },
-        88
-      );
-      tl.fromTo(".phase-5-cta",
-        { scale: 0.9, opacity: 0 },
-        { scale: 1, opacity: 1, ease: "back.out(1.7)", duration: 7 },
-        90
-      );
+      tl.fromTo(".phase-5-text", { opacity: 0, y: 50 }, { opacity: 1, y: 0, ease: "power2.out", duration: 7 }, 88);
+      tl.fromTo(".phase-5-cta", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, ease: "back.out(1.7)", duration: 7 }, 90);
 
-      // 7. Canvas container Fade Out (95 to 100)
-      tl.to(".sequence-canvas-container", {
-        opacity: 0,
-        scale: 0.95,
-        ease: "none",
-        duration: 5,
-      }, 95);
+      tl.to(".sequence-canvas-container", { opacity: 0, scale: 0.95, ease: "none", duration: 5 }, 95);
 
-      // Refresh ScrollTrigger to ensure all layout offsets are registered correctly
       ScrollTrigger.refresh();
     }
 
     return () => {
-      isComponentMounted = false;
-      window.removeEventListener("resize", handleResize);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      isCancelled = true;
+      clearTimeout(safetyTimer);
+      if (rafId) cancelAnimationFrame(rafId);
+      video.removeEventListener("progress", handleProgress);
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("canplaythrough", handleCanPlayThrough);
+      if (animationTimeline) {
+        animationTimeline.kill();
+      }
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+      document.documentElement.classList.remove("hide-scrollbar");
     };
-  }, []);
+  }, [tier]);
 
   const handleCtaScroll = (e: React.MouseEvent) => {
     e.preventDefault();
     const aboutSection = document.getElementById("about");
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: "smooth" });
-    }
+    if (aboutSection) aboutSection.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div id="home" ref={containerRef} className="relative w-full h-screen bg-luxury-bg">
-      {/* Loading overlay panel */}
-      {!isLoaded && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-luxury-bg">
-          <div className="text-center space-y-6">
-            <h2 className="text-sm font-heading tracking-[0.4em] uppercase text-luxury-accent">
-              E TECH ELEVATORS
-            </h2>
-            <p className="text-xs text-luxury-text-secondary tracking-[0.15em] font-light">
-              Initializing Cinematic Atmosphere
-            </p>
-            <div className="relative w-64 h-[1px] bg-white/10 mx-auto overflow-hidden">
+    <div id="home" ref={containerRef} className="relative w-full h-[100svh] bg-luxury-bg">
+      {!isReady && (
+        <div
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-luxury-bg transition-opacity duration-700 ${
+            loadProgress >= 100 ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          <div className="flex flex-col items-center gap-16">
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-xs font-heading tracking-[0.5em] uppercase text-luxury-text-primary/90">
+                E TECH ELEVATORS
+              </h2>
+              <div className="w-6 h-[1px] bg-luxury-accent/40" />
+            </div>
+
+            <div className="relative h-[220px] w-4 flex items-center justify-center">
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-white/10" />
               <div
-                className="absolute top-0 left-0 h-full bg-luxury-accent transition-all duration-300 ease-out"
-                style={{ width: `${loadProgress}%` }}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] bg-luxury-accent/60 transition-all duration-300 ease-out"
+                style={{ height: `${loadProgress}%` }}
+              />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 w-3 h-[6px] bg-luxury-accent rounded-[1px] transition-all duration-300 ease-out"
+                style={{
+                  bottom: `calc(${loadProgress}% - 3px)`,
+                  boxShadow: "0 0 12px rgba(212,175,55,0.7), 0 0 24px rgba(212,175,55,0.35)",
+                }}
               />
             </div>
-            <p className="text-[10px] text-luxury-text-secondary tracking-widest">
-              {loadProgress}%
-            </p>
+
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-2xl font-heading font-extralight text-luxury-text-primary tabular-nums tracking-wider">
+                {String(loadProgress).padStart(2, "0")}
+                <span className="text-luxury-accent/60 text-base ml-0.5">%</span>
+              </span>
+              <p className="text-[9px] text-luxury-text-secondary tracking-[0.35em] uppercase font-light">
+                Preparing your journey
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Sticky Canvas & Overlay Text Container */}
-      <div className="sequence-canvas-container absolute top-0 left-0 w-full h-screen overflow-hidden z-10">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
+      <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
+        {/* All-Intra Native Hardware Scrubber Video */}
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover [will-change:transform] [transform:translateZ(0)]"
+        />
 
-        {/* Soft Golden Backlight Radial Glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_450px_at_50%_50%,rgba(201,164,75,0.08),transparent_80%)] pointer-events-none z-15" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_450px_at_50%_50%,rgba(201,164,75,0.08),transparent_80%)] pointer-events-none z-[15]" />
 
-        {/* Phase 1: Architectural atmosphere & Intro */}
-        <div className="phase-1-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20">
-          <h1 
-            className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6 animate-pulse duration-4000"
+        {/* Phase 1 */}
+        <div className="phase-1-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 [will-change:transform,opacity] [transform:translateZ(0)]">
+          <h1
+            className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6"
             style={{ textShadow: "0 0 30px rgba(201, 164, 75, 0.35), 0 0 60px rgba(201, 164, 75, 0.15)" }}
           >
             {siteContent.hero.phase1.title}
@@ -325,43 +299,43 @@ export default function HeroSequence() {
           </div>
         </div>
 
-        {/* Phase 2: Orbit - Luxury Vertical Mobility */}
-        <div className="phase-2-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 
+        {/* Phase 2 */}
+        <div className="phase-2-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
+          <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
-            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+            style={{ textShadow: "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)" }}
           >
             {siteContent.hero.phase2.title}
           </h2>
-          <p 
+          <p
             className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
-            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+            style={{ textShadow: "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)" }}
           >
             {highlightAccents(siteContent.hero.phase2.description)}
           </p>
         </div>
 
-        {/* Phase 3: Designed Around Experience */}
-        <div className="phase-3-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 
+        {/* Phase 3 */}
+        <div className="phase-3-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
+          <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-6"
-            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+            style={{ textShadow: "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)" }}
           >
             {siteContent.hero.phase3.title}
           </h2>
-          <p 
+          <p
             className="text-sm md:text-lg font-light max-w-xl leading-relaxed tracking-wider text-[rgba(250,250,250,0.65)]"
-            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+            style={{ textShadow: "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)" }}
           >
             {highlightAccents(siteContent.hero.phase3.description)}
           </p>
         </div>
 
-        {/* Phase 4: Precision Engineering Feature List */}
-        <div className="phase-4-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none">
-          <h2 
+        {/* Phase 4 */}
+        <div className="phase-4-text absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
+          <h2
             className="text-4xl md:text-6xl font-heading font-light tracking-[0.2em] uppercase text-[#FAFAFA] mb-8"
-            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+            style={{ textShadow: "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)" }}
           >
             {siteContent.hero.phase4.title}
           </h2>
@@ -370,7 +344,7 @@ export default function HeroSequence() {
               <li
                 key={idx}
                 className="phase-4-li flex items-center md:justify-center gap-4 text-sm md:text-lg tracking-widest font-light text-[rgba(250,250,250,0.65)]"
-                style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+                style={{ textShadow: "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-[#C9A44B] shrink-0" />
                 <span>{highlightAccents(feature)}</span>
@@ -379,17 +353,17 @@ export default function HeroSequence() {
           </ul>
         </div>
 
-        {/* Phase 5: Arrival & Call to Action */}
-        <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none">
-          <h1 
+        {/* Phase 5 */}
+        <div className="phase-5-text absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 opacity-0 pointer-events-none select-none [will-change:transform,opacity] [transform:translateZ(0)] before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_900px_450px_at_50%_50%,rgba(0,0,0,0.75),transparent_75%)] before:pointer-events-none before:-z-10">
+          <h2
             className="text-5xl md:text-7xl font-heading font-extralight tracking-[0.3em] uppercase text-[#FAFAFA] mb-6"
-            style={{ textShadow: "0 4px 16px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 0, 0, 0.85)" }}
+            style={{ textShadow: "0 4px 20px rgba(0, 0, 0, 1), 0 0 40px rgba(0, 0, 0, 0.95), 0 0 80px rgba(0, 0, 0, 0.8)" }}
           >
             {siteContent.hero.phase5.title}
-          </h1>
-          <p 
+          </h2>
+          <p
             className="text-sm md:text-lg tracking-[0.4em] uppercase font-light max-w-xl mb-12 text-[rgba(250,250,250,0.65)]"
-            style={{ textShadow: "0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8)" }}
+            style={{ textShadow: "0 2px 12px rgba(0, 0, 0, 1), 0 0 24px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.7)" }}
           >
             {highlightAccents(siteContent.hero.phase5.subtitle)}
           </p>
@@ -402,9 +376,8 @@ export default function HeroSequence() {
           </a>
         </div>
 
-        {/* Subtle top/bottom luxury vignettes */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-luxury-bg to-transparent pointer-events-none z-15" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-luxury-bg to-transparent pointer-events-none z-15" />
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-luxury-bg to-transparent pointer-events-none z-[15]" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-luxury-bg to-transparent pointer-events-none z-[15]" />
       </div>
     </div>
   );

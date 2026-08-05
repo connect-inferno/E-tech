@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   User,
   Building,
@@ -15,27 +15,77 @@ import {
   CheckCircle,
   RotateCcw,
   MessageCircle,
-  Download,
+
   PhoneCall,
   ShieldAlert,
   ShieldCheck,
   ChevronRight,
   Clock,
-  Briefcase
+  Briefcase,
+  X
 } from "lucide-react";
+import { siteContent } from "@/data/siteContent";
 
-// Client's original logo in Base64
-const LOGO_BASE64 = "data:image/png;base64,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] ==";
+// E-Tech's WhatsApp Business number — digits only, no leading + or spaces.
+// Every lead submission is sent HERE, not to the customer's own number.
+const ETECH_WHATSAPP = siteContent.contact.info.whatsapp.replace(/[^\d]/g, "");
+
+
+// Input validation helpers — restricts input to positive digits (0-9) only, blocking negative signs and letters
+const sanitizePositiveInteger = (val: string, maxLen?: number) => {
+  const digits = val.replace(/[^\d]/g, "");
+  if (maxLen) return digits.slice(0, maxLen);
+  return digits;
+};
+
+// Strips leading zeros so values like 0 or 00 cannot be entered
+const sanitizePositiveNonZeroInteger = (val: string, maxLen?: number) => {
+  let digits = val.replace(/[^\d]/g, "");
+  digits = digits.replace(/^0+/, "");
+  if (maxLen) return digits.slice(0, maxLen);
+  return digits;
+};
+
+const blockNonDigitKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (["-", "+", "e", "E", "."].includes(e.key)) {
+    e.preventDefault();
+  }
+};
+
+const COUNTRY_CODES = [
+  { code: "+91", label: "+91 (IN)" },
+  { code: "+971", label: "+971 (UAE)" },
+  { code: "+966", label: "+966 (SA)" },
+  { code: "+1", label: "+1 (US/CA)" },
+  { code: "+44", label: "+44 (UK)" },
+  { code: "+974", label: "+974 (QA)" },
+  { code: "+968", label: "+968 (OM)" },
+  { code: "+965", label: "+965 (KW)" },
+  { code: "+65", label: "+65 (SG)" },
+  { code: "+61", label: "+61 (AU)" },
+  { code: "+49", label: "+49 (DE)" },
+];
 
 type EnqType = "new" | "mod" | "svc" | "brk" | "amc" | "";
 
 export default function CrmForm() {
   const [step, setStep] = useState<number>(0);
   const [enqType, setEnqType] = useState<EnqType>("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [privacyAgreed, setPrivacyAgreed] = useState<boolean>(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState<boolean>(false);
+
+  const triggerError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => {
+      setErrorMsg((prev) => (prev === msg ? null : prev));
+    }, 4500);
+  };
 
   // Step 0 states
   const [cname, setCname] = useState("");
   const [coname, setConame] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [pname, setPname] = useState("");
@@ -48,6 +98,7 @@ export default function CrmForm() {
   // Step 1 states (Enquiry-specific fields)
   // New Installation
   const [liftType, setLiftType] = useState("");
+  const [otherLiftType, setOtherLiftType] = useState("");
   const [capPer, setCapPer] = useState("");
   const [capKg, setCapKg] = useState("");
   const [doorType, setDoorType] = useState("");
@@ -101,27 +152,52 @@ export default function CrmForm() {
   const [reportDate, setReportDate] = useState("");
   const [waMessage, setWaMessage] = useState("");
 
-  // Automatically scroll to form top when step changes
+  // Scroll to the form top when the user advances a step — but NOT on mount.
+  // This component renders inside the homepage's contact section, so scrolling
+  // on the initial effect run would drag the visitor down past the entire hero
+  // the moment the page loads.
+  const hasMountedRef = useRef(false);
   useEffect(() => {
-    const el = document.getElementById("crm-form-container");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
     }
+    document
+      .getElementById("crm-form-container")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [step]);
 
   const handleNextStep0 = () => {
     if (!cname.trim() || !mobile.trim() || !ploc.trim() || !btype || !bstatus) {
-      alert("Please fill all required fields (*)");
+      triggerError("Please fill all required fields (*)");
+      return;
+    }
+    if (mobile.trim().length !== 10) {
+      triggerError("Mobile number must be exactly 10 digits");
+      return;
+    }
+    if (floors && parseInt(floors, 10) < 1) {
+      triggerError("Number of floors must be at least 1");
+      return;
+    }
+    if (stops && parseInt(stops, 10) < 1) {
+      triggerError("Number of stops must be at least 1");
       return;
     }
     if (!enqType) {
-      alert("Please select an enquiry type");
+      triggerError("Please select an enquiry category");
       return;
     }
+    if (!privacyAgreed) {
+      triggerError("Please accept the Privacy Policy & Terms to proceed");
+      return;
+    }
+    setErrorMsg(null);
     setStep(1);
   };
 
   const handleBack = () => {
+    setErrorMsg(null);
     setStep(step - 1);
   };
 
@@ -144,13 +220,18 @@ export default function CrmForm() {
   const generateReport = () => {
     // Validate Step 1 based on Enquiry Type
     if (enqType === "new" && !liftType) {
-      alert("Please select elevator type");
+      triggerError("Please select elevator type");
+      return;
+    }
+    if (enqType === "new" && liftType === "Other" && !otherLiftType.trim()) {
+      triggerError("Please specify custom elevator / transport type");
       return;
     }
     if (enqType === "svc" && !sUrgency) {
-      alert("Please select urgency level");
+      triggerError("Please select urgency level");
       return;
     }
+    setErrorMsg(null);
 
     const now = new Date();
     const formattedDate = now.toLocaleDateString("en-IN", {
@@ -164,6 +245,9 @@ export default function CrmForm() {
 
     setReportRef(refNum);
     setReportDate(formattedDate);
+
+    // Build active lift type string
+    const activeLiftType = liftType === "Other" ? (otherLiftType.trim() ? `Other (${otherLiftType.trim()})` : "Other") : liftType;
 
     // Build WhatsApp message
     const typeLabels = {
@@ -184,14 +268,14 @@ export default function CrmForm() {
     msg += `*Customer Details:*\n`;
     msg += `• Name: ${cname}\n`;
     if (coname) msg += `• Company: ${coname}\n`;
-    msg += `• Mobile: ${mobile}\n`;
+    msg += `• Mobile: ${countryCode} ${mobile}\n`;
     msg += `• Location: ${ploc}\n`;
     msg += `• Building: ${btype} | ${bstatus}\n`;
     if (floors) msg += `• Floors/Stops: ${floors} Floors / ${stops || floors} Stops\n\n`;
 
     if (enqType === "new") {
       msg += `*Requested Spec:*\n`;
-      msg += `• Elevator: ${liftType}\n`;
+      msg += `• Elevator: ${activeLiftType}\n`;
       if (capKg) msg += `• Capacity: ${capKg} kg (${capPer || "—"} persons)\n`;
       if (doorType) msg += `• Door: ${doorType}\n`;
       if (mr) msg += `• Machine Room: ${mr}\n`;
@@ -243,6 +327,7 @@ export default function CrmForm() {
     setFloors("");
     setStops("");
     setLiftType("");
+    setOtherLiftType("");
     setCapPer("");
     setCapKg("");
     setDoorType("");
@@ -285,10 +370,11 @@ export default function CrmForm() {
   };
 
   const handleSendWhatsApp = () => {
-    const formattedMobile = mobile.replace(/\s+/g, "").replace(/-/g, "");
-    const waUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(
-      formattedMobile
-    )}&text=${encodeURIComponent(waMessage)}`;
+    // Send to E-Tech's WhatsApp Business number so leads land in the team's
+    // inbox. Customer's own `mobile` is already inside the message body.
+    const waUrl = `https://api.whatsapp.com/send?phone=${ETECH_WHATSAPP}&text=${encodeURIComponent(
+      waMessage
+    )}`;
     window.open(waUrl, "_blank");
   };
 
@@ -391,8 +477,8 @@ export default function CrmForm() {
           <style>
             body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; margin: 40px; font-size: 13px; line-height: 1.6; }
             .header-container { display: flex; align-items: center; border-bottom: 2px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px; }
-            .logo-wrap { background: #030303; padding: 10px; border-radius: 4px; display: inline-block; margin-right: 20px; }
-            .logo-img { height: 50px; }
+            .logo-wrap { background: #ffffff; padding: 6px 10px; border-radius: 4px; display: inline-block; margin-right: 20px; }
+            .logo-wrap img { height: 56px; width: auto; display: block; }
             .title-block { flex: 1; }
             .title-block h1 { margin: 0; font-size: 18px; letter-spacing: 0.05em; font-weight: 700; color: #0c0c0e; }
             .title-block p { margin: 4px 0 0; font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -409,7 +495,7 @@ export default function CrmForm() {
         <body>
           <div class="header-container">
             <div class="logo-wrap">
-              <img class="logo-img" src="${LOGO_BASE64}" alt="E-Tech Elevators">
+              <img src="${window.location.origin}/images/etech-logo.png" alt="E-Tech Elevators">
             </div>
             <div class="title-block">
               <h1>E-TECH ELEVATORS</h1>
@@ -513,8 +599,12 @@ export default function CrmForm() {
 
       {/* Header Panel */}
       <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6 mb-6 relative z-10">
-        <div className="bg-white/95 p-2.5 rounded-sm flex items-center justify-center shadow-lg w-16 h-16 shrink-0">
-          <img className="h-10 object-contain" src={LOGO_BASE64} alt="E-Tech Elevators Logo" />
+        <div className="bg-white/95 rounded-sm flex items-center justify-center shadow-lg w-20 h-16 shrink-0 p-1.5">
+          <img
+            src="/images/etech-logo.png"
+            alt="E-Tech Elevators"
+            className="max-h-full max-w-full object-contain"
+          />
         </div>
         <div className="text-center sm:text-left flex-1 space-y-1">
           <div className="text-lg font-heading font-light tracking-wider text-luxury-text-primary">
@@ -528,68 +618,119 @@ export default function CrmForm() {
 
       {/* Steps Progress Indicator bar */}
       <div className="mb-8 relative z-10">
-        <div className="flex items-center justify-between max-w-md mx-auto relative px-2">
+        <div className="flex items-center justify-between max-w-md mx-auto relative px-6">
           {/* Connector Line Base */}
-          <div className="absolute top-1/2 left-4 right-4 h-[1px] bg-white/5 -translate-y-1/2 z-0" />
+          <div className="absolute top-3.5 left-10 right-10 h-[2px] bg-white/10 z-0 pointer-events-none" />
           {/* Active Progress line */}
           <div
-            className="absolute top-1/2 left-4 h-[1px] bg-luxury-accent -translate-y-1/2 z-0 transition-all duration-500"
-            style={{ width: step === 0 ? "0%" : step === 1 ? "50%" : "92%" }}
+            className="absolute top-3.5 left-10 h-[2px] bg-luxury-accent z-0 transition-all duration-500 pointer-events-none"
+            style={{
+              width: step === 0 ? "0%" : step === 1 ? "50%" : "calc(100% - 80px)",
+            }}
           />
 
-          {/* Node 1 */}
-          <div className="flex flex-col items-center gap-2 relative z-10">
+          {/* Node 1: Details */}
+          <button
+            type="button"
+            onClick={() => {
+              setErrorMsg(null);
+              setStep(0);
+            }}
+            className="flex flex-col items-center gap-2 relative z-10 group focus:outline-none cursor-pointer"
+          >
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold border transition-all duration-300 ${
                 step > 0
-                  ? "bg-luxury-accent border-luxury-accent text-black"
+                  ? "bg-luxury-accent border-luxury-accent text-black font-bold"
                   : step === 0
-                  ? "bg-luxury-accent/10 border-luxury-accent text-luxury-accent shadow-[0_0_10px_rgba(212,175,55,0.2)]"
-                  : "bg-black/80 border-white/10 text-luxury-text-secondary"
+                  ? "bg-luxury-accent/15 border-luxury-accent text-luxury-accent shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                  : "bg-black/90 border-white/15 text-luxury-text-secondary group-hover:border-white/30"
               }`}
             >
-              1
+              {step > 0 ? <CheckCircle className="w-3.5 h-3.5" /> : 1}
             </div>
-            <span className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-light">
+            <span
+              className={`text-[9px] uppercase tracking-widest font-medium transition-colors ${
+                step >= 0 ? "text-luxury-accent font-semibold" : "text-luxury-text-secondary"
+              }`}
+            >
               Details
             </span>
-          </div>
+          </button>
 
-          {/* Node 2 */}
-          <div className="flex flex-col items-center gap-2 relative z-10">
+          {/* Node 2: Enquiry */}
+          <button
+            type="button"
+            onClick={() => {
+              if (step > 1 || (cname && mobile && ploc && btype && bstatus && enqType)) {
+                setErrorMsg(null);
+                setStep(1);
+              }
+            }}
+            className={`flex flex-col items-center gap-2 relative z-10 group focus:outline-none ${
+              step >= 1 || (cname && mobile && ploc && btype && bstatus && enqType)
+                ? "cursor-pointer"
+                : "cursor-not-allowed opacity-60"
+            }`}
+          >
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold border transition-all duration-300 ${
                 step > 1
-                  ? "bg-luxury-accent border-luxury-accent text-black"
+                  ? "bg-luxury-accent border-luxury-accent text-black font-bold"
                   : step === 1
-                  ? "bg-luxury-accent/10 border-luxury-accent text-luxury-accent shadow-[0_0_10px_rgba(212,175,55,0.2)]"
-                  : "bg-black/80 border-white/10 text-luxury-text-secondary"
+                  ? "bg-luxury-accent/15 border-luxury-accent text-luxury-accent shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                  : "bg-black/90 border-white/15 text-luxury-text-secondary"
               }`}
             >
-              2
+              {step > 1 ? <CheckCircle className="w-3.5 h-3.5" /> : 2}
             </div>
-            <span className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-light">
+            <span
+              className={`text-[9px] uppercase tracking-widest font-medium transition-colors ${
+                step >= 1 ? "text-luxury-accent font-semibold" : "text-luxury-text-secondary"
+              }`}
+            >
               Enquiry
             </span>
-          </div>
+          </button>
 
-          {/* Node 3 */}
+          {/* Node 3: Report */}
           <div className="flex flex-col items-center gap-2 relative z-10">
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold border transition-all duration-300 ${
                 step === 2
-                  ? "bg-luxury-accent border-luxury-accent text-black shadow-[0_0_10px_rgba(212,175,55,0.2)]"
-                  : "bg-black/80 border-white/10 text-luxury-text-secondary"
+                  ? "bg-luxury-accent border-luxury-accent text-black font-bold shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                  : "bg-black/90 border-white/15 text-luxury-text-secondary"
               }`}
             >
               3
             </div>
-            <span className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-light">
+            <span
+              className={`text-[9px] uppercase tracking-widest font-medium transition-colors ${
+                step === 2 ? "text-luxury-accent font-semibold" : "text-luxury-text-secondary"
+              }`}
+            >
               Report
             </span>
           </div>
         </div>
       </div>
+
+      {/* Luxury Inline Toast Alert Banner */}
+      {errorMsg && (
+        <div className="mb-6 p-4 rounded-sm border border-red-500/40 bg-red-950/60 backdrop-blur-md flex items-center justify-between gap-3 text-red-200 text-xs font-medium shadow-[0_0_20px_rgba(239,68,68,0.25)] relative z-20 transition-all duration-300">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setErrorMsg(null)}
+            className="text-red-400 hover:text-white transition-colors p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* STEP 0: DETAILS & CATEGORY SELECTION */}
       {step === 0 && (
@@ -629,16 +770,31 @@ export default function CrmForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                Mobile Number *
+                Mobile Number * (10 Digits)
               </label>
-              <input
-                type="tel"
-                required
-                placeholder="+91 XXXXX XXXXX"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-24 sm:w-28 bg-black/40 border border-white/5 rounded-sm px-2 py-3 text-xs text-luxury-accent font-semibold focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all shrink-0 cursor-pointer text-center"
+                >
+                  {COUNTRY_CODES.map((c) => (
+                    <option key={c.code} value={c.code} className="bg-[#0c0c0e] text-white">
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  required
+                  maxLength={10}
+                  placeholder="98765 43210"
+                  value={mobile}
+                  onKeyDown={blockNonDigitKeys}
+                  onChange={(e) => setMobile(sanitizePositiveInteger(e.target.value, 10))}
+                  className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
@@ -723,25 +879,29 @@ export default function CrmForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                No. of Floors
+                No. of Floors (Min: 1)
               </label>
               <input
                 type="number"
+                min="1"
                 placeholder="e.g. 10"
                 value={floors}
-                onChange={(e) => setFloors(e.target.value)}
+                onKeyDown={blockNonDigitKeys}
+                onChange={(e) => setFloors(sanitizePositiveNonZeroInteger(e.target.value))}
                 className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                No. of Stops
+                No. of Stops (Min: 1)
               </label>
               <input
                 type="number"
+                min="1"
                 placeholder="e.g. 10"
                 value={stops}
-                onChange={(e) => setStops(e.target.value)}
+                onKeyDown={blockNonDigitKeys}
+                onChange={(e) => setStops(sanitizePositiveNonZeroInteger(e.target.value))}
                 className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
               />
             </div>
@@ -752,12 +912,10 @@ export default function CrmForm() {
           </div>
 
           {/* Grid Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { id: "new", label: "New Installation", icon: Building2, desc: "Plan and install premium new lift systems" },
               { id: "mod", label: "Modernization", icon: Wrench, desc: "Aesthetic upgrades and controller overhauls" },
-              { id: "svc", label: "Service & Maintenance", icon: Settings, desc: "Regular lifecycle support and health checks" },
-              { id: "brk", label: "Breakdown Call", icon: AlertTriangle, desc: "Emergency technician callouts and repair" },
               { id: "amc", label: "AMC Enquiry", icon: FileText, desc: "Long-term certified service agreements" }
             ].map((item) => {
               const Icon = item.icon;
@@ -767,47 +925,139 @@ export default function CrmForm() {
                   key={item.id}
                   type="button"
                   onClick={() => setEnqType(item.id as EnqType)}
-                  className={`p-4 border rounded-sm text-left transition-all duration-300 group flex items-start gap-4 relative overflow-hidden focus:outline-none ${
+                  className={`p-5 border rounded-sm text-left transition-all duration-300 group flex flex-col justify-between min-h-[140px] relative overflow-hidden focus:outline-none ${
                     isSelected
-                      ? "border-luxury-accent bg-luxury-accent/5 text-luxury-text-primary"
-                      : "border-white/5 hover:border-white/15 bg-black/20 hover:bg-luxury-card-hover text-luxury-text-secondary hover:text-luxury-text-primary"
-                  } ${item.id === "amc" ? "sm:col-span-2" : ""}`}
+                      ? "border-luxury-accent bg-luxury-accent/10 text-luxury-text-primary shadow-[0_0_20px_rgba(212,175,55,0.15)]"
+                      : "border-white/10 hover:border-luxury-accent/40 bg-black/30 hover:bg-luxury-card-hover text-luxury-text-secondary hover:text-luxury-text-primary"
+                  }`}
                 >
-                  <div
-                    className={`p-2.5 rounded-sm border shrink-0 transition-colors duration-300 ${
-                      isSelected
-                        ? "bg-luxury-accent text-black border-luxury-accent"
-                        : "bg-white/5 border-white/5 text-luxury-text-secondary group-hover:text-luxury-accent group-hover:border-luxury-accent/30"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
+                  <div className="flex items-center justify-between w-full mb-3">
+                    <div
+                      className={`p-2.5 rounded-sm border shrink-0 transition-colors duration-300 ${
+                        isSelected
+                          ? "bg-luxury-accent text-black border-luxury-accent"
+                          : "bg-white/5 border-white/10 text-luxury-text-secondary group-hover:text-luxury-accent group-hover:border-luxury-accent/40"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+
+                    {isSelected && (
+                      <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-luxury-accent font-semibold bg-luxury-accent/15 px-2 py-0.5 rounded-sm border border-luxury-accent/30">
+                        Selected
+                      </span>
+                    )}
                   </div>
+
                   <div className="space-y-1">
-                    <span className="text-xs uppercase tracking-wider font-semibold block">
+                    <span className="text-xs uppercase tracking-wider font-semibold block text-luxury-text-primary group-hover:text-luxury-accent transition-colors">
                       {item.label}
                     </span>
-                    <span className="text-[10px] font-light leading-relaxed block text-luxury-text-secondary">
+                    <span className="text-[11px] font-light leading-relaxed block text-luxury-text-secondary">
                       {item.desc}
                     </span>
                   </div>
-
-                  {/* Corner indicator dot */}
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-luxury-accent animate-ping" />
-                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="pt-4">
+          {/* Privacy Policy & Terms Agreement Checkbox */}
+          <div className="pt-2">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs text-luxury-text-secondary select-none">
+              <input
+                type="checkbox"
+                checked={privacyAgreed}
+                onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                className="w-4 h-4 rounded-xs border-white/20 bg-black/40 text-luxury-accent focus:ring-luxury-accent focus:ring-offset-0 cursor-pointer accent-[#d4af37]"
+              />
+              <span className="leading-snug text-[11px]">
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setPrivacyModalOpen(true)}
+                  className="text-luxury-accent hover:underline font-semibold cursor-pointer underline-offset-2"
+                >
+                  Privacy Policy &amp; Terms
+                </button>
+              </span>
+            </label>
+          </div>
+
+          <div className="pt-2">
             <button
               type="button"
               onClick={handleNextStep0}
-              className="luxury-btn w-full py-4 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2"
+              className={`w-full py-4 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 transition-all duration-300 rounded-sm ${
+                privacyAgreed
+                  ? "luxury-btn cursor-pointer shadow-lg"
+                  : "bg-white/5 border border-white/10 text-luxury-text-secondary cursor-not-allowed opacity-60 hover:border-red-500/30"
+              }`}
             >
               Continue to Details <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* In-Form Glassmorphic Privacy Policy & Terms Modal */}
+      {privacyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#0e0e12] border border-white/10 rounded-sm max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden relative z-10">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/40">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-luxury-accent" />
+                <h3 className="text-sm font-heading font-semibold uppercase tracking-widest text-luxury-text-primary">
+                  Privacy Policy &amp; Terms
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPrivacyModalOpen(false)}
+                className="p-1 text-luxury-text-secondary hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs text-luxury-text-secondary font-light leading-relaxed">
+              <p className="text-luxury-text-primary font-medium">
+                E-Tech Elevators &amp; Escalators ("E-Tech") Commitment to Client Privacy &amp; Service Terms.
+              </p>
+              <div className="space-y-2 pt-2">
+                <h4 className="text-luxury-accent font-semibold uppercase tracking-wider text-[10px]">1. Information Usage</h4>
+                <p>When you submit an enquiry, your contact details (Name, Mobile, Location, Building Specifications) are used strictly by E-Tech's engineering desk to generate technical quotes and schedule site surveys.</p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-luxury-accent font-semibold uppercase tracking-wider text-[10px]">2. Zero 3rd Party Sharing</h4>
+                <p>Your details are never sold, rented, or shared with outside telemarketers or third-party vendors.</p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-luxury-accent font-semibold uppercase tracking-wider text-[10px]">3. Technical Estimates Disclaimer</h4>
+                <p>All preliminary calculations or budget estimates are subject to physical hoistway audit and structural verification by certified E-Tech engineers.</p>
+              </div>
+              <div className="space-y-2">
+                <h4 className="text-luxury-accent font-semibold uppercase tracking-wider text-[10px]">4. IS 14665 Safety Compliance</h4>
+                <p>All installations and maintenance work comply with Bureau of Indian Standards IS 14665 and Maharashtra Lift Rules.</p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/10 bg-black/40 flex justify-between items-center">
+              <span className="text-[10px] text-luxury-text-secondary">E-Tech Elevators • Safety First</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setPrivacyAgreed(true);
+                  setPrivacyModalOpen(false);
+                }}
+                className="luxury-btn px-6 py-2.5 text-xs uppercase tracking-wider font-semibold cursor-pointer"
+              >
+                I Agree &amp; Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -824,20 +1074,42 @@ export default function CrmForm() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                  Elevator Type *
+                  Elevator / Vertical Transport Type *
                 </label>
                 <select
                   value={liftType}
                   onChange={(e) => setLiftType(e.target.value)}
-                  className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
+                  className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent transition-all"
                 >
-                  <option value="" className="bg-[#0c0c0e]">Select</option>
-                  <option className="bg-[#0c0c0e]">Passenger Lift</option>
-                  <option className="bg-[#0c0c0e]">Home Lift</option>
-                  <option className="bg-[#0c0c0e]">Hospital Lift</option>
-                  <option className="bg-[#0c0c0e]">Stretcher Lift</option>
-                  <option className="bg-[#0c0c0e]">Goods Lift</option>
+                  <option value="" className="bg-[#0c0c0e]">Select Elevator Type</option>
+                  <option value="Passenger Lift" className="bg-[#0c0c0e]">Passenger Lift</option>
+                  <option value="MRL (Machine-Room-Less) Lift" className="bg-[#0c0c0e]">MRL (Machine-Room-Less) Lift</option>
+                  <option value="Hydraulic Lift" className="bg-[#0c0c0e]">Hydraulic Lift</option>
+                  <option value="Hospital / Stretcher Lift" className="bg-[#0c0c0e]">Hospital / Stretcher Lift</option>
+                  <option value="Goods / Freight Lift" className="bg-[#0c0c0e]">Goods / Freight Lift</option>
+                  <option value="Car Lift" className="bg-[#0c0c0e]">Car Lift</option>
+                  <option value="Home Lift" className="bg-[#0c0c0e]">Home Lift</option>
+                  <option value="Capsule Lift" className="bg-[#0c0c0e]">Capsule Lift</option>
+                  <option value="Escalators" className="bg-[#0c0c0e]">Escalators</option>
+                  <option value="Traveleators / Moving Walkways" className="bg-[#0c0c0e]">Traveleators / Moving Walkways</option>
+                  <option value="Other" className="bg-[#0c0c0e]">Other (Specify Custom)</option>
                 </select>
+
+                {liftType === "Other" && (
+                  <div className="flex flex-col gap-1.5 pt-2">
+                    <label className="text-[9px] uppercase tracking-widest text-luxury-accent font-semibold">
+                      Specify Custom Elevator / Transport Type *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Service Dumbwaiter / Inclined Platform Lift"
+                      value={otherLiftType}
+                      onChange={(e) => setOtherLiftType(e.target.value)}
+                      className="w-full bg-black/40 border border-luxury-accent/50 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -847,9 +1119,11 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     placeholder="e.g. 8"
                     value={capPer}
-                    onChange={(e) => setCapPer(e.target.value)}
+                    onKeyDown={blockNonDigitKeys}
+                    onChange={(e) => setCapPer(sanitizePositiveInteger(e.target.value))}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
                   />
                 </div>
@@ -859,9 +1133,11 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     placeholder="e.g. 630"
                     value={capKg}
-                    onChange={(e) => setCapKg(e.target.value)}
+                    onKeyDown={blockNonDigitKeys}
+                    onChange={(e) => setCapKg(sanitizePositiveInteger(e.target.value))}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
                   />
                 </div>
@@ -936,9 +1212,11 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     placeholder="e.g. 4500"
                     value={oh}
-                    onChange={(e) => setOh(e.target.value)}
+                    onKeyDown={blockNonDigitKeys}
+                    onChange={(e) => setOh(sanitizePositiveInteger(e.target.value))}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
                   />
                 </div>
@@ -1755,19 +2033,6 @@ export default function CrmForm() {
             </div>
           </div>
 
-          {/* WhatsApp Textbox display */}
-          <div className="border border-white/5 rounded-sm overflow-hidden bg-black/40">
-            <div className="bg-emerald-950/20 border-b border-white/5 p-4 flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <h4 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-emerald-400">
-                WhatsApp Dispatch Copy Template
-              </h4>
-            </div>
-            <div className="bg-emerald-950/5 border-l-4 border-emerald-500/80 p-5 font-mono text-[11px] leading-relaxed text-emerald-300 whitespace-pre-wrap">
-              {waMessage}
-            </div>
-          </div>
-
           {/* CRM Details Grid entry */}
           <div className="border border-white/5 rounded-sm overflow-hidden bg-black/40">
             <div className="bg-[#121216] border-b border-white/5 p-4 flex items-center gap-2">
@@ -1809,22 +2074,28 @@ export default function CrmForm() {
           {/* Actions Bar */}
           <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-white/5 relative z-10">
             <button
+              type="button"
+              onClick={() => {
+                setErrorMsg(null);
+                setStep(0);
+              }}
+              className="flex-1 border border-white/10 hover:border-luxury-accent/40 hover:bg-white/5 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-luxury-text-primary flex items-center justify-center gap-2 font-medium cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 text-luxury-accent" /> Edit Information
+            </button>
+            <button
+              type="button"
               onClick={resetForm}
-              className="flex-1 border border-white/10 hover:bg-white/5 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-luxury-text-secondary flex items-center justify-center gap-2"
+              className="flex-1 border border-white/10 hover:bg-white/5 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-luxury-text-secondary flex items-center justify-center gap-2 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" /> New Enquiry
             </button>
             <button
+              type="button"
               onClick={handleSendWhatsApp}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-white flex items-center justify-center gap-2 font-semibold shadow-lg"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-white flex items-center justify-center gap-2 font-semibold shadow-lg cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4" /> Send WhatsApp
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              className="flex-1 luxury-btn py-4 text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2 shadow-lg"
-            >
-              <Download className="w-4 h-4" /> Download PDF
+              <MessageCircle className="w-4 h-4" /> Submit via WhatsApp
             </button>
           </div>
         </div>
