@@ -345,77 +345,66 @@ export const siteContent = {
     items: [
       {
         id: "p1",
-        title: "Premium Residential Capsule Lift",
+        title: "Adhya Rohan Residency",
         category: "Residential",
         location: "Pune, MH",
-        image: "p1",
+        image: "p1"
       },
       {
         id: "p2",
-        title: "Commercial Tower AMC Fleet",
-        category: "Commercial",
-        location: "Pimpri-Chinchwad, MH",
-        image: "p2",
+        title: "Swaraj Residency",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p2"
       },
       {
         id: "p3",
-        title: "Hospitality Glass Elevator",
-        category: "Hospitality",
-        location: "Nashik, MH",
-        image: "p3",
+        title: "Pristine Greens",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p3"
       },
       {
         id: "p4",
-        title: "Hospital Bed Elevators",
-        category: "Medical",
-        location: "Pune, MH",
-        image: "p4",
+        title: "Sector 3A Dwarka City",
+        category: "Commercial",
+        location: "New Delhi, DL",
+        image: "p4"
       },
       {
         id: "p5",
-        title: "Multi-Building MRL Modernization",
-        category: "Commercial",
-        location: "Chh. Sambhajinagar, MH",
-        image: "p5",
+        title: "Tanish Pearls Phase 1",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p5"
       },
       {
         id: "p6",
-        title: "Private Villa Bespoke Home Lift",
-        category: "Residential",
-        location: "Kolhapur, MH",
-        image: "p6",
-      },
-      {
-        id: "p11",
-        title: "Sanklecha Mango Woods",
-        category: "Residential",
-        location: "Mohammed Wadi, Pune, MH",
-        image: "p11",
-        link: "https://www.nobroker.in/sanklecha-mango-woods-mohammed-wadi_pune-prjt-5ba3f027714b56aa085721ae",
-      },
-      {
-        id: "p12",
         title: "Kool Homes Signature",
         category: "Residential",
         location: "Pune, MH",
-        image: "p12",
-        link: "https://www.commonfloor.com/kool-homes-signature-pune/povp-mrshvy",
+        image: "p6"
       },
       {
-        id: "p13",
+        id: "p7",
         title: "Mantra Residency",
         category: "Residential",
-        location: "Chakan, Pune, MH",
-        image: "p13",
-        link: "https://www.magicbricks.com/mbprojectdetail/mantra-residency-chakan-pune-pdpid-4d4235303832373036?inc=new_home_project_dtl",
+        location: "Pune, MH",
+        image: "p7"
       },
       {
-        id: "p14",
+        id: "p8",
         title: "GDS Capital City",
-        category: "Residential",
-        location: "Nighoje, Pune, MH",
-        image: "p14",
-        link: "https://www.nobroker.in/gds-capital-city-nighoje_pune-prjt-5ba3f027714b56aa08570d6d",
+        category: "Commercial",
+        location: "Pune, MH",
+        image: "p8"
+      },
+      {
+        id: "p9",
+        title: "Siddhi Multispeciality Hospital",
+        category: "Hospitality",
+        location: "Pune, MH",
+        image: "p9"
       },
     ] as ProjectItem[],
   },

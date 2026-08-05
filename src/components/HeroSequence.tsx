@@ -24,6 +24,10 @@ export default function HeroSequence() {
   const [isReady, setIsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
 
+  // Helper function to format image filename path
+  const getFrameUrl = (frameNumber: number) => {
+    return `/images/elevator_frames_240_new/${frameNumber}.jpg`;
+  };
   // ── Tier detection ─────────────────────────────────────────────────────────
   useEffect(() => {
     const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
