@@ -13,14 +13,17 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Unsplash images
+// Local project images
 const PROJECT_IMAGES: Record<string, string> = {
-  p1: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=600",
-  p2: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600",
-  p3: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=600",
-  p4: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=600",
-  p5: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600",
-  p6: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600",
+  p1: "/images/projects/p1.png",
+  p2: "/images/projects/p2.png",
+  p3: "/images/projects/p3.jpg",
+  p4: "/images/projects/p4.png",
+  p5: "/images/projects/p5.png",
+  p6: "/images/projects/p6.png",
+  p7: "/images/projects/p7.png",
+  p8: "/images/projects/p8.png",
+  p9: "/images/projects/p9.jpg",
 };
 
 // Custom Case Specifications for each project

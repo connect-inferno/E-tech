@@ -277,45 +277,66 @@ export const siteContent = {
     items: [
       {
         id: "p1",
-        title: "The Lumina Penthouse Capsule",
+        title: "Adhya Rohan Residency",
         category: "Residential",
-        location: "Mumbai, MH",
+        location: "Pune, MH",
         image: "p1"
       },
       {
         id: "p2",
-        title: "Aura Premium Commercial Hub",
-        category: "Commercial",
-        location: "Bangalore, KA",
+        title: "Swaraj Residency",
+        category: "Residential",
+        location: "Pune, MH",
         image: "p2"
       },
       {
         id: "p3",
-        title: "Grand Regent Architectural Glass Lift",
-        category: "Hospitality",
-        location: "New Delhi, DL",
+        title: "Pristine Greens",
+        category: "Residential",
+        location: "Pune, MH",
         image: "p3"
       },
       {
         id: "p4",
-        title: "Medipath Care Bed Elevators",
-        category: "Medical",
-        location: "Pune, MH",
+        title: "Sector 3A Dwarka City",
+        category: "Commercial",
+        location: "New Delhi, DL",
         image: "p4"
       },
       {
         id: "p5",
-        title: "Zenith Tower MRL Fleet",
-        category: "Commercial",
-        location: "Hyderabad, TS",
+        title: "Tanish Pearls Phase 1",
+        category: "Residential",
+        location: "Pune, MH",
         image: "p5"
       },
       {
         id: "p6",
-        title: "Seaside Villa Bespoke Home Lift",
+        title: "Kool Homes Signature",
         category: "Residential",
-        location: "Goa, GA",
+        location: "Pune, MH",
         image: "p6"
+      },
+      {
+        id: "p7",
+        title: "Mantra Residency",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p7"
+      },
+      {
+        id: "p8",
+        title: "GDS Capital City",
+        category: "Commercial",
+        location: "Pune, MH",
+        image: "p8"
+      },
+      {
+        id: "p9",
+        title: "Siddhi Multispeciality Hospital",
+        category: "Hospitality",
+        location: "Pune, MH",
+        image: "p9"
       },
     ] as ProjectItem[],
   },
