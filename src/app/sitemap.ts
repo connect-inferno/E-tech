@@ -3,6 +3,24 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.e-techelevators.com';
 
+  const cities = [
+    'pune',
+    'pimpri-chinchwad',
+    'chakan',
+    'talegaon',
+    'bhosari',
+    'ranjangaon',
+    'nashik',
+    'mumbai',
+  ];
+
+  const locationEntries: MetadataRoute.Sitemap = cities.map((city) => ({
+    url: `${baseUrl}/locations/${city}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.85,
+  }));
+
   return [
     {
       url: baseUrl,
@@ -40,5 +58,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    ...locationEntries,
   ];
 }

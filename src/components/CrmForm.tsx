@@ -46,6 +46,22 @@ const sanitizePositiveNonZeroInteger = (val: string, maxLen?: number) => {
   return digits;
 };
 
+// Input sanitization helper — strips dangerous HTML/script tags, control characters, and excess whitespace
+const sanitizeTextInput = (val: string): string => {
+  if (!val) return "";
+  return val
+    .replace(/<[^>]*>?/gm, "")
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+    .trim();
+};
+
+// RFC-compliant basic email format validator
+const validateEmail = (emailStr: string): boolean => {
+  if (!emailStr) return true;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(emailStr.trim());
+};
+
 const blockNonDigitKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
   if (["-", "+", "e", "E", "."].includes(e.key)) {
     e.preventDefault();
@@ -81,6 +97,10 @@ export default function CrmForm() {
       setErrorMsg((prev) => (prev === msg ? null : prev));
     }, 4500);
   };
+
+  // Bot protection & submission rate limit state
+  const [b_hp_email, setB_hp_email] = useState("");
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
 
   // Step 0 states
   const [cname, setCname] = useState("");
@@ -168,12 +188,49 @@ export default function CrmForm() {
   }, [step]);
 
   const handleNextStep0 = () => {
-    if (!cname.trim() || !mobile.trim() || !ploc.trim() || !btype || !bstatus) {
-      triggerError("Please fill all required fields (*)");
+    // Bot protection: If invisible honeypot field is populated, abort silently
+    if (b_hp_email.trim()) {
       return;
     }
-    if (mobile.trim().length !== 10) {
+
+    // Submission throttling: Prevent rapid multi-clicking submissions within 3 seconds
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      triggerError("Please wait a moment before advancing");
+      return;
+    }
+    setLastSubmitTime(now);
+
+    const cleanCname = sanitizeTextInput(cname);
+    const cleanConame = sanitizeTextInput(coname);
+    const cleanEmail = sanitizeTextInput(email);
+    const cleanPname = sanitizeTextInput(pname);
+    const cleanPloc = sanitizeTextInput(ploc);
+
+    setCname(cleanCname);
+    setConame(cleanConame);
+    setEmail(cleanEmail);
+    setPname(cleanPname);
+    setPloc(cleanPloc);
+
+    if (!cleanCname || cleanCname.length < 2) {
+      triggerError("Please enter a valid Customer / Contact Name (at least 2 characters)");
+      return;
+    }
+    if (!mobile.trim() || mobile.trim().length !== 10) {
       triggerError("Mobile number must be exactly 10 digits");
+      return;
+    }
+    if (cleanEmail && !validateEmail(cleanEmail)) {
+      triggerError("Please enter a valid email address (e.g. name@domain.com)");
+      return;
+    }
+    if (!cleanPloc || cleanPloc.length < 2) {
+      triggerError("Please enter a valid Project Site / City Location");
+      return;
+    }
+    if (!btype || !bstatus) {
+      triggerError("Please select building type and status");
       return;
     }
     if (floors && parseInt(floors, 10) < 1) {
@@ -735,6 +792,20 @@ export default function CrmForm() {
       {/* STEP 0: DETAILS & CATEGORY SELECTION */}
       {step === 0 && (
         <div className="space-y-6 relative z-10">
+          {/* Invisible Honeypot Trap for Bot Protection — hidden from real human users */}
+          <div className="opacity-0 absolute -z-50 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true">
+            <label htmlFor="b_hp_email">Do not fill this field</label>
+            <input
+              type="text"
+              id="b_hp_email"
+              name="b_hp_email"
+              tabIndex={-1}
+              autoComplete="off"
+              value={b_hp_email}
+              onChange={(e) => setB_hp_email(e.target.value)}
+            />
+          </div>
+
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-luxury-accent font-medium border-b border-white/5 pb-2">
             <User className="w-4 h-4" /> Customer Information
           </div>
