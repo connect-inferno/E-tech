@@ -220,21 +220,19 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
             <p>{siteContent.footer.disclaimer}</p>
             <div className="flex flex-wrap items-center justify-center gap-3 text-luxury-text-secondary pt-1 md:pt-0">
-              <button
-                type="button"
-                onClick={() => setActiveModal("privacy")}
-                className="hover:text-luxury-accent transition-colors cursor-pointer underline-offset-4 hover:underline"
+              <Link
+                href="/privacy"
+                className="hover:text-luxury-accent transition-colors underline-offset-4 hover:underline"
               >
                 Privacy Policy
-              </button>
+              </Link>
               <span className="text-white/20">•</span>
-              <button
-                type="button"
-                onClick={() => setActiveModal("terms")}
-                className="hover:text-luxury-accent transition-colors cursor-pointer underline-offset-4 hover:underline"
+              <Link
+                href="/terms"
+                className="hover:text-luxury-accent transition-colors underline-offset-4 hover:underline"
               >
                 Terms &amp; Conditions
-              </button>
+              </Link>
               <span className="text-white/20">•</span>
               <button
                 type="button"
