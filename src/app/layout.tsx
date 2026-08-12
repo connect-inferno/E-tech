@@ -123,8 +123,22 @@ export default function RootLayout({
         <link
           rel="preload"
           as="video"
-          href="/images/elevator-hero-720p.mp4"
+          href="/images/elevator-allkeyframe-mobile.mp4"
           type="video/mp4"
+        />
+        {/* Register Service Worker for instant video cache on repeat visits */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.warn('SW registration failed:', err);
+                  });
+                });
+              }
+            `,
+          }}
         />
         <script
           type="application/ld+json"

@@ -23,6 +23,7 @@ export default function HeroSequence() {
   const [tier, setTier] = useState<DeviceTier>("");
   const [isReady, setIsReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [videoVisible, setVideoVisible] = useState(false);
 
   // Helper function to format image filename path
   const getFrameUrl = (frameNumber: number) => {
@@ -104,6 +105,12 @@ export default function HeroSequence() {
         setIsReady(true);
         startScrubLoop();
         setupAnimation();
+        // Trigger the CSS fade-in on the next paint so the transition fires
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setVideoVisible(true);
+          });
+        });
       }, 300);
     };
 
@@ -269,7 +276,13 @@ export default function HeroSequence() {
         </div>
       )}
 
-      <div className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10">
+      <div
+        className="sequence-canvas-container absolute top-0 left-0 w-full h-[100svh] overflow-hidden z-10"
+        style={{
+          opacity: videoVisible ? 1 : 0,
+          transition: "opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
         {/* All-Intra Native Hardware Scrubber Video */}
         <video
           ref={videoRef}
