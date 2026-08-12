@@ -6,7 +6,7 @@
 //
 // Versioning: bump CACHE_NAME to force old caches to be cleared on next visit.
 
-const CACHE_NAME = "etch-video-cache-v2";
+const CACHE_NAME = "etch-video-cache-v3";
 
 // Only intercept these specific video paths (keeps the cache lean)
 const VIDEO_PATTERNS = [
@@ -90,17 +90,9 @@ self.addEventListener("fetch", (event) => {
         return cachedFull.clone();
       }
 
-      // 2. Not cached yet — fetch the FULL video (strip the Range header so
-      //    we get a complete 200 response we can store and reuse)
+      // 2. Not cached yet — fetch the FULL video directly
       try {
-        const fullRequest = new Request(event.request.url, {
-          method: "GET",
-          headers: { "Cache-Control": "no-cache" },
-          mode: event.request.mode,
-          credentials: event.request.credentials,
-        });
-
-        const networkResponse = await fetch(fullRequest);
+        const networkResponse = await fetch(event.request.url);
 
         if (networkResponse.ok && networkResponse.status === 200) {
           // Store the full response in cache (clone because body can only be read once)
