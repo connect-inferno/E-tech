@@ -208,13 +208,7 @@ export default function ProjectsPage() {
         >
           <AnimatePresence mode="popLayout">
             {filteredProjects.map((project: ProjectItem, idx) => {
-              // Custom column heights to achieve a luxury masonry aesthetic
-              const heightClass =
-                idx === 1 || idx === 3
-                  ? "aspect-[4/5] md:aspect-[3/4]"
-                  : idx === 4
-                    ? "aspect-square"
-                    : "aspect-[4/5]";
+              const heightClass = "aspect-[4/5]";
 
               return (
                 <motion.div

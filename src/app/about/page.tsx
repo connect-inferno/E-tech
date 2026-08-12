@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -8,9 +8,59 @@ import { siteContent } from "@/data/siteContent";
 import { CheckCircle, ShieldCheck, Award, Cpu, Zap, Headphones, Circle } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useInView } from "framer-motion";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+}
+
+function AnimatedStatCard({ number, suffix, label }: { number: number; suffix: string; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) {
+      setCount(0);
+      return;
+    }
+
+    let animationFrameId: number;
+    const duration = 2000;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentVal = Math.floor(easeProgress * number);
+      
+      setCount(currentVal);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setCount(number);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [isInView, number]);
+
+  return (
+    <div ref={ref} className="stat-block space-y-2 bg-luxury-card border border-white/5 p-8 rounded-sm hover:border-luxury-accent/25 transition-all">
+      <h3 className="stat-number text-4xl md:text-5xl font-heading font-light tracking-wider text-luxury-accent tabular-nums">
+        {count}{suffix}
+      </h3>
+      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-luxury-text-secondary font-light">
+        {label}
+      </p>
+    </div>
+  );
 }
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -27,7 +77,6 @@ const getIcon = (iconName: string) => {
 
 export default function AboutPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -85,32 +134,6 @@ export default function AboutPage() {
         }
       );
 
-      const stats = statsRef.current;
-      if (stats) {
-        const statBlocks = stats.querySelectorAll(".stat-block");
-        statBlocks.forEach((block) => {
-          const numberEl = block.querySelector(".stat-number");
-          if (!numberEl) return;
-          const target = parseFloat(numberEl.getAttribute("data-target") || "0");
-          const suffix = numberEl.getAttribute("data-suffix") || "";
-          const countObj = { value: 0 };
-          gsap.to(countObj, {
-            value: target,
-            duration: 2.0,
-            ease: "power2.out",
-            scrollTrigger: { trigger: block, start: "top 85%", toggleActions: "play none none none" },
-            onUpdate: () => {
-              if (numberEl) {
-                if (target % 1 === 0) {
-                  numberEl.textContent = Math.floor(countObj.value).toString() + suffix;
-                } else {
-                  numberEl.textContent = countObj.value.toFixed(1) + suffix;
-                }
-              }
-            },
-          });
-        });
-      }
     }, containerRef);
 
     return () => ctx.revert();
@@ -320,22 +343,15 @@ export default function AboutPage() {
 
         {/* Dynamic Stats Section */}
         <div
-          ref={statsRef}
           className="mt-20 md:mt-28 pt-16 border-t border-white/5 grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 text-center"
         >
           {siteContent.about.stats.map((stat, idx) => (
-            <div key={idx} className="stat-block space-y-2 bg-luxury-card border border-white/5 p-8 rounded-sm hover:border-luxury-accent/25 transition-all">
-              <h3
-                className="stat-number text-4xl md:text-5xl font-heading font-light tracking-wider text-luxury-accent"
-                data-target={stat.number}
-                data-suffix={stat.suffix}
-              >
-                0
-              </h3>
-              <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-luxury-text-secondary font-light">
-                {stat.label}
-              </p>
-            </div>
+            <AnimatedStatCard
+              key={idx}
+              number={stat.number}
+              suffix={stat.suffix}
+              label={stat.label}
+            />
           ))}
         </div>
       </section>

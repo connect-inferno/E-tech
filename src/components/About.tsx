@@ -1,22 +1,70 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { siteContent } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "next/link";
+import { useInView } from "framer-motion";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+function AnimatedStat({ number, suffix, label }: { number: number; suffix: string; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) {
+      setCount(0);
+      return;
+    }
+
+    let animationFrameId: number;
+    const duration = 2000;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentVal = Math.floor(easeProgress * number);
+      
+      setCount(currentVal);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setCount(number);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [isInView, number]);
+
+  return (
+    <div ref={ref} className="stat-block space-y-3">
+      <h3 className="stat-number text-4xl md:text-5xl font-heading font-light tracking-wider text-luxury-accent tabular-nums">
+        {count}{suffix}
+      </h3>
+      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-luxury-text-secondary font-light">
+        {label}
+      </p>
+    </div>
+  );
+}
+
 export default function About() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const stats = statsRef.current;
     if (!section) return;
 
     // Fade-in stagger for editorial text
@@ -39,47 +87,9 @@ export default function About() {
       }
     );
 
-
-
-    // Numbers count-up scroll trigger
-    if (stats) {
-      const statBlocks = stats.querySelectorAll(".stat-block");
-      
-      statBlocks.forEach((block) => {
-        const numberEl = block.querySelector(".stat-number");
-        if (!numberEl) return;
-
-        const target = parseFloat(numberEl.getAttribute("data-target") || "0");
-        const suffix = numberEl.getAttribute("data-suffix") || "";
-        
-        const countObj = { value: 0 };
-
-        gsap.to(countObj, {
-          value: target,
-          duration: 2.0,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: block,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-          onUpdate: () => {
-            if (numberEl) {
-              // Handle decimal and integers uniquely
-              if (target % 1 === 0) {
-                numberEl.textContent = Math.floor(countObj.value).toString() + suffix;
-              } else {
-                numberEl.textContent = countObj.value.toFixed(1) + suffix;
-              }
-            }
-          },
-        });
-      });
-    }
-
     return () => {
       ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === section || (stats && stats.contains(t.trigger as Node))) {
+        if (t.trigger === section) {
           t.kill();
         }
       });
@@ -180,22 +190,15 @@ export default function About() {
 
       {/* Stats Counter Row */}
       <div
-        ref={statsRef}
         className="max-w-7xl mx-auto mt-24 md:mt-32 pt-16 border-t border-white/5 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center md:text-left"
       >
         {siteContent.about.stats.map((stat, idx) => (
-          <div key={idx} className="stat-block space-y-3">
-            <h3
-              className="stat-number text-4xl md:text-5xl font-heading font-light tracking-wider text-luxury-accent"
-              data-target={stat.number}
-              data-suffix={stat.suffix}
-            >
-              0
-            </h3>
-            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-luxury-text-secondary font-light">
-              {stat.label}
-            </p>
-          </div>
+          <AnimatedStat
+            key={idx}
+            number={stat.number}
+            suffix={stat.suffix}
+            label={stat.label}
+          />
         ))}
       </div>
     </section>

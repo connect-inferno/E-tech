@@ -341,7 +341,7 @@ export const siteContent = {
   projects: {
     title: "Featured Installations",
     subtitle: "Our Projects",
-    categories: ["All", "Residential", "Commercial", "Hospitality", "Medical"],
+    categories: ["All", "Residential", "Commercial", "Hospitality"],
     items: [
       {
         id: "p1",
