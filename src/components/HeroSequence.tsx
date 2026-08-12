@@ -97,8 +97,20 @@ export default function HeroSequence() {
       readyFired = true;
       setLoadProgress(100);
 
+      // Prevent browser scroll restoration from scrolling down on refresh
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
+      // Reset scroll to top so hero journey starts from Phase 1
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
       // Force video to seek to 0 initially
       video.currentTime = 0;
+      targetTime = 0;
+      currentTime = 0;
 
       setTimeout(() => {
         if (isCancelled) return;
