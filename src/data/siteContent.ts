@@ -341,7 +341,7 @@ export const siteContent = {
   projects: {
     title: "Featured Installations",
     subtitle: "Our Projects",
-    categories: ["All", "Residential", "Commercial", "Hospitality"],
+    categories: ["All", "Residential", "Commercial", "Healthcare"],
     items: [
       {
         id: "p1",
@@ -367,8 +367,8 @@ export const siteContent = {
       {
         id: "p4",
         title: "Sector 3A Dwarka City",
-        category: "Commercial",
-        location: "New Delhi, DL",
+        category: "Residential",
+        location: "Mahalunge, Pune",
         image: "p4"
       },
       {
@@ -395,16 +395,37 @@ export const siteContent = {
       {
         id: "p8",
         title: "GDS Capital City",
-        category: "Commercial",
-        location: "Pune, MH",
+        category: "Residential",
+        location: "Nighoje, Pune",
         image: "p8"
       },
       {
         id: "p9",
         title: "Siddhi Multispeciality Hospital",
-        category: "Hospitality",
-        location: "Pune, MH",
+        category: "Healthcare",
+        location: "Manchar, Pune",
         image: "p9"
+      },
+      {
+        id: "p10",
+        title: "Sanklecha Mango Woods",
+        category: "Residential",
+        location: "Mohammed Wadi, Pune",
+        image: "p10"
+      },
+      {
+        id: "p11",
+        title: "Spine City Mall",
+        category: "Commercial",
+        location: "Moshi, Pune",
+        image: "p11"
+      },
+      {
+        id: "p12",
+        title: "R Deccan Mall",
+        category: "Commercial",
+        location: "Deccan Gymkhana, Pune",
+        image: "p12"
       },
     ] as ProjectItem[],
   },

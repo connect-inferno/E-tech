@@ -73,8 +73,13 @@ export default function Contact() {
       <div className="absolute inset-0 z-0 select-none pointer-events-none opacity-10">
         <img
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200"
-          alt="Architectural Backdrop"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.currentTarget.parentElement as HTMLDivElement).style.display = "none";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-luxury-bg via-transparent to-luxury-bg" />
       </div>

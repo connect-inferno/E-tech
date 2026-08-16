@@ -83,7 +83,7 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white/95 rounded-sm px-3 py-2 inline-block shadow-sm">
               <Image
-                src="/images/etech-logo.png"
+                src="/images/etech_logo.png"
                 alt={siteContent.company.name}
                 width={140}
                 height={90}
