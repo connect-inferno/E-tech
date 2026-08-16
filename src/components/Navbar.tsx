@@ -69,18 +69,17 @@ export default function Navbar() {
             href="/"
             prefetch={true}
             onClick={(e) => handleLinkClick(e, "/")}
-            className="group select-none bg-white/95 rounded-sm px-2 py-1 shadow-sm hover:shadow-md transition-shadow flex items-center gap-2"
+            className="group select-none flex items-center"
             aria-label={siteContent.company.name}
           >
             <Image
-              src="/images/etech-logo.png"
+              src="/images/etech_logo.png"
               alt={siteContent.company.name}
               width={90}
               height={58}
               priority
               className="h-9 md:h-11 w-auto object-contain"
             />
-            <span className="text-[8px] font-mono text-gray-400 leading-none">v37</span>
           </Link>
 
           {/* Desktop Navigation Links */}

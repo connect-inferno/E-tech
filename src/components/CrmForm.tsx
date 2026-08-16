@@ -30,6 +30,25 @@ import { siteContent } from "@/data/siteContent";
 // Every lead submission is sent HERE, not to the customer's own number.
 const ETECH_WHATSAPP = siteContent.contact.info.whatsapp.replace(/[^\d]/g, "");
 
+// Google Apps Script webhook that appends the lead as a row in the shared
+// "E-Tech Leads 2026" sheet. Configured via .env.local so the URL can be
+// rotated without a code change. Empty in dev builds skips the call silently.
+const SHEETS_WEBHOOK = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_URL || "";
+
+// Fire-and-forget POST to the Google Sheets webhook. Uses text/plain to
+// bypass the CORS preflight that Apps Script does not answer. The response
+// is opaque under no-cors mode; we don't need it — the WhatsApp / PDF
+// handoff is the primary channel and must not block on this.
+const pushToSheets = (payload: Record<string, string>) => {
+  if (!SHEETS_WEBHOOK) return;
+  fetch(SHEETS_WEBHOOK, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+};
+
 
 // Input validation helpers — restricts input to positive digits (0-9) only, blocking negative signs and letters
 const sanitizePositiveInteger = (val: string, maxLen?: number) => {
@@ -367,6 +386,25 @@ export default function CrmForm() {
     msg += `Our technical desk is processing this. We will get in touch with you shortly.`;
 
     setWaMessage(msg);
+
+    pushToSheets({
+      date: formattedDate,
+      refId: refNum,
+      customerName: cname,
+      company: coname,
+      mobile: `${countryCode} ${mobile}`,
+      email,
+      projectName: pname,
+      location: ploc,
+      buildingType: btype,
+      buildingStatus: bstatus,
+      floors,
+      stops: stops || floors,
+      enquiryType: typeLabel,
+      liftType: activeLiftType,
+      status: "New",
+    });
+
     setStep(2);
   };
 
@@ -552,7 +590,7 @@ export default function CrmForm() {
         <body>
           <div class="header-container">
             <div class="logo-wrap">
-              <img src="${window.location.origin}/images/etech-logo.png" alt="E-Tech Elevators">
+              <img src="${window.location.origin}/images/etech_logo.png" alt="E-Tech Elevators">
             </div>
             <div class="title-block">
               <h1>E-TECH ELEVATORS</h1>
@@ -658,7 +696,7 @@ export default function CrmForm() {
       <div className="flex flex-col sm:flex-row items-center gap-4 border-b border-white/5 pb-6 mb-6 relative z-10">
         <div className="bg-white/95 rounded-sm flex items-center justify-center shadow-lg w-20 h-16 shrink-0 p-1.5">
           <img
-            src="/images/etech-logo.png"
+            src="/images/etech_logo.png"
             alt="E-Tech Elevators"
             className="max-h-full max-w-full object-contain"
           />
