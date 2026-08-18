@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
 
 // ── Asset paths ──────────────────────────────────────────────────────────────
 const MOBILE_VIDEO_SRC = "/images/elevator-allkeyframe-mobile.mp4";
-const DESKTOP_VIDEO_SRC = "/images/elevator-allkeyframe-desktop.mp4";
+const DESKTOP_VIDEO_SRC = "/images/elevator-allkeyframe-desktop_gwr_ai.mp4";
 
 type DeviceTier = "" | "mobile" | "desktop";
 
