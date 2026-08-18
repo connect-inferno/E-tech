@@ -14,8 +14,6 @@ import {
   ArrowLeft,
   CheckCircle,
   RotateCcw,
-  MessageCircle,
-
   PhoneCall,
   ShieldAlert,
   ShieldCheck,
@@ -118,7 +116,7 @@ export default function CrmForm() {
   };
 
   // Bot protection & submission rate limit state
-  const [b_hp_email, setB_hp_email] = useState("");
+  const [b_hp_website, setB_hp_website] = useState("");
   const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
 
   // Step 0 states
@@ -208,7 +206,7 @@ export default function CrmForm() {
 
   const handleNextStep0 = () => {
     // Bot protection: If invisible honeypot field is populated, abort silently
-    if (b_hp_email.trim()) {
+    if (b_hp_website.trim()) {
       return;
     }
 
@@ -832,15 +830,18 @@ export default function CrmForm() {
         <div className="space-y-6 relative z-10">
           {/* Invisible Honeypot Trap for Bot Protection — hidden from real human users */}
           <div className="opacity-0 absolute -z-50 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true">
-            <label htmlFor="b_hp_email">Do not fill this field</label>
+            <label htmlFor="b_hp_website">Do not fill this field</label>
             <input
               type="text"
-              id="b_hp_email"
-              name="b_hp_email"
+              id="b_hp_website"
+              name="b_hp_website"
               tabIndex={-1}
-              autoComplete="off"
-              value={b_hp_email}
-              onChange={(e) => setB_hp_email(e.target.value)}
+              autoComplete="new-password"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
+              value={b_hp_website}
+              onChange={(e) => setB_hp_website(e.target.value)}
             />
           </div>
 
@@ -1351,10 +1352,10 @@ export default function CrmForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                    Expected Completion Month
+                    Expected Completion Date
                   </label>
                   <input
-                    type="month"
+                    type="date"
                     value={compDate}
                     onChange={(e) => setCompDate(e.target.value)}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
@@ -1460,7 +1461,7 @@ export default function CrmForm() {
                     Completion Deadline
                   </label>
                   <input
-                    type="month"
+                    type="date"
                     value={mDate}
                     onChange={(e) => setMDate(e.target.value)}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
@@ -2201,10 +2202,10 @@ export default function CrmForm() {
             </button>
             <button
               type="button"
-              onClick={handleSendWhatsApp}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 transition-all text-xs uppercase tracking-widest py-4 rounded-sm text-white flex items-center justify-center gap-2 font-semibold shadow-lg cursor-pointer"
+              onClick={handleDownloadPDF}
+              className="flex-1 luxury-btn text-xs uppercase tracking-widest py-4 rounded-sm flex items-center justify-center gap-2 font-semibold shadow-lg cursor-pointer"
             >
-              <MessageCircle className="w-4 h-4" /> Submit via WhatsApp
+              <FileText className="w-4 h-4" /> Download PDF Report
             </button>
           </div>
         </div>

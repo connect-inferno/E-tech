@@ -111,20 +111,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Resource hints — let the browser pipeline mobile assets before JS runs */}
-        {/* Poster / first frame: shown immediately on low & mobile tiers */}
+        {/* Resource hints — scoped to mobile so desktop doesn't fetch assets it will never use.
+            The media query is respected by every modern browser and prevents the "preloaded but
+            not used" console warnings + uncaught promise rejection when the file 404s. */}
         <link
           rel="preload"
           as="image"
           href="/images/elevator-sequence-webp-mobile/1.webp"
           fetchPriority="high"
+          media="(max-width: 767px)"
         />
-        {/* Mobile video: preloading the mp4 shaves seconds off the "30% buffered" gate */}
         <link
           rel="preload"
           as="video"
           href="/images/elevator-allkeyframe-mobile.mp4"
           type="video/mp4"
+          media="(max-width: 767px)"
         />
         {/* Register Service Worker for instant video cache on repeat visits */}
         <script
