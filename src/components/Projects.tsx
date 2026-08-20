@@ -26,6 +26,8 @@ const PROJECT_IMAGES: Record<string, string> = {
   p10: "/images/projects/sanklecha.jpg",
   p11: "/images/projects/spine.jpg",
   p12: "/images/projects/redeccan.jpeg",
+  p13: "/images/projects/vasant.webp",
+  p14: "/images/projects/swaraj.webp",
 };
 
 export default function Projects() {
