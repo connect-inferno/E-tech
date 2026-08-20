@@ -427,6 +427,20 @@ export const siteContent = {
         location: "Deccan Gymkhana, Pune",
         image: "p12"
       },
+      {
+        id: "p13",
+        title: "Vasant Center",
+        category: "Commercial",
+        location: "Pune",
+        image: "p13"
+      },
+      {
+        id: "p14",
+        title: "Swaraj Capital Moshi",
+        category: "Commercial",
+        location: "Moshi, Pune",
+        image: "p14"
+      },
     ] as ProjectItem[],
   },
   contact: {

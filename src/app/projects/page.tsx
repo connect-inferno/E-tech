@@ -28,6 +28,8 @@ const PROJECT_IMAGES: Record<string, string> = {
   p10: "/images/projects/sanklecha.jpg",
   p11: "/images/projects/spine.jpg",
   p12: "/images/projects/redeccan.jpeg",
+  p13: "/images/projects/vasant.webp",
+  p14: "/images/projects/swaraj.webp",
 };
 
 // Custom Case Specifications for each project
@@ -118,6 +120,22 @@ const PROJECT_DETAILS: Record<string, {
     finish: "Mirror Stainless Steel with LED downlights",
     systemType: "Commercial Passenger Lift",
     notes: "Retail and F&B tower installation with regenerative drive for reduced energy draw.",
+  },
+  p13: {
+    height: "Commercial Specification",
+    speed: "1.5 - 2.0 m/s",
+    loadCapacity: "800 - 1600 kg",
+    finish: "Brushed Stainless Steel",
+    systemType: "Commercial Passenger Lift",
+    notes: "Installed at Vasant Center, Pune.",
+  },
+  p14: {
+    height: "Commercial Specification",
+    speed: "1.5 - 2.0 m/s",
+    loadCapacity: "800 - 1600 kg",
+    finish: "Brushed Stainless Steel",
+    systemType: "Commercial Passenger Lift",
+    notes: "Installed at Swaraj Capital, Moshi.",
   },
 };
 
