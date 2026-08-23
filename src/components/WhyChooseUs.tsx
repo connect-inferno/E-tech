@@ -134,7 +134,7 @@ export default function WhyChooseUs() {
                   } w-full pl-10 lg:pl-0 select-none`}
                 >
                   {/* Central Node Indicator */}
-                  <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border border-white/20 bg-luxury-bg timeline-node z-20 transition-all duration-300 shadow-[0_0_6px_rgba(0,0,0,0.8)]" />
+                  <div className="absolute left-4 lg:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border border-white/20 bg-luxury-bg timeline-node z-20 transition-all duration-300 shadow-[0_0_6px_rgba(0,0,0,0.8)]" />
 
                   {/* Left/Right Content Block */}
                   <div className="w-full lg:w-1/2 lg:px-12 timeline-content opacity-0">
