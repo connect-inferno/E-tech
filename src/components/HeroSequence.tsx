@@ -231,9 +231,9 @@ export default function HeroSequence() {
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("canplaythrough", handleCanPlayThrough);
       if (animationTimeline) {
+        animationTimeline.scrollTrigger?.kill();
         animationTimeline.kill();
       }
-      ScrollTrigger.getAll().forEach((st) => st.kill());
       document.documentElement.classList.remove("hide-scrollbar");
     };
   }, [tier]);
