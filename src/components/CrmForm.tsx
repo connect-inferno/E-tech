@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Clock,
   Briefcase,
+  Loader2,
   X
 } from "lucide-react";
 import { siteContent } from "@/data/siteContent";
@@ -38,13 +39,13 @@ const SHEETS_WEBHOOK = process.env.NEXT_PUBLIC_SHEETS_WEBHOOK_URL || "";
 // is opaque under no-cors mode; we don't need it — the WhatsApp / PDF
 // handoff is the primary channel and must not block on this.
 const pushToSheets = (payload: Record<string, string>) => {
-  if (!SHEETS_WEBHOOK) return;
-  fetch(SHEETS_WEBHOOK, {
+  if (!SHEETS_WEBHOOK) return Promise.resolve();
+  return fetch(SHEETS_WEBHOOK, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload),
-  }).catch(() => {});
+  });
 };
 
 
@@ -85,6 +86,11 @@ const blockNonDigitKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
   }
 };
 
+// Today's date in YYYY-MM-DD, used as the min/max bound on <input type="date">
+// fields so users can't pick a completion target in the past, or a "last
+// service" date in the future.
+const todayStr = new Date().toISOString().split("T")[0];
+
 const COUNTRY_CODES = [
   { code: "+91", label: "+91 (IN)" },
   { code: "+971", label: "+971 (UAE)" },
@@ -107,6 +113,8 @@ export default function CrmForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [privacyAgreed, setPrivacyAgreed] = useState<boolean>(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   const triggerError = (msg: string) => {
     setErrorMsg(msg);
@@ -262,10 +270,6 @@ export default function CrmForm() {
       triggerError("Please select an enquiry category");
       return;
     }
-    if (!privacyAgreed) {
-      triggerError("Please accept the Privacy Policy & Terms to proceed");
-      return;
-    }
     setErrorMsg(null);
     setStep(1);
   };
@@ -299,6 +303,26 @@ export default function CrmForm() {
     }
     if (enqType === "new" && liftType === "Other" && !otherLiftType.trim()) {
       triggerError("Please specify custom elevator / transport type");
+      return;
+    }
+    if (enqType === "new" && !capKg.trim()) {
+      triggerError("Please enter the required elevator capacity (kg)");
+      return;
+    }
+    if (enqType === "new" && !doorType) {
+      triggerError("Please select a door type");
+      return;
+    }
+    if (enqType === "new" && !mr) {
+      triggerError("Please select machine room configuration");
+      return;
+    }
+    if (enqType === "new" && compDate && compDate < todayStr) {
+      triggerError("Expected completion date cannot be in the past");
+      return;
+    }
+    if (enqType === "mod" && mDate && mDate < todayStr) {
+      triggerError("Completion deadline cannot be in the past");
       return;
     }
     if (enqType === "svc" && !sUrgency) {
@@ -384,30 +408,60 @@ export default function CrmForm() {
     msg += `Our technical desk is processing this. We will get in touch with you shortly.`;
 
     setWaMessage(msg);
-
-    pushToSheets({
-      date: formattedDate,
-      refId: refNum,
-      customerName: cname,
-      company: coname,
-      mobile: `${countryCode} ${mobile}`,
-      email,
-      projectName: pname,
-      location: ploc,
-      buildingType: btype,
-      buildingStatus: bstatus,
-      floors,
-      stops: stops || floors,
-      enquiryType: typeLabel,
-      liftType: activeLiftType,
-      status: "New",
-    });
-
     setStep(2);
+  };
+
+  const handleSubmitEnquiry = async () => {
+    if (!privacyAgreed) {
+      triggerError("Please accept the Privacy Policy & Terms to proceed");
+      return;
+    }
+    if (isSubmitting || isSubmitted) return;
+
+    setErrorMsg(null);
+    setIsSubmitting(true);
+
+    const typeLabels = {
+      new: "New Installation",
+      mod: "Modernization",
+      svc: "Service & Maintenance",
+      brk: "Breakdown Call",
+      amc: "AMC Enquiry",
+    };
+    const typeLabel = enqType ? typeLabels[enqType as Exclude<EnqType, "">] : "Enquiry";
+    const activeLiftType = liftType === "Other" ? (otherLiftType.trim() ? `Other (${otherLiftType.trim()})` : "Other") : liftType;
+
+    try {
+      await pushToSheets({
+        date: reportDate,
+        refId: reportRef,
+        customerName: cname,
+        company: coname,
+        mobile: `${countryCode} ${mobile}`,
+        email,
+        projectName: pname,
+        location: ploc,
+        buildingType: btype,
+        buildingStatus: bstatus,
+        floors,
+        stops: stops || floors,
+        enquiryType: typeLabel,
+        liftType: activeLiftType,
+        status: "New",
+      });
+      setIsSubmitted(true);
+    } catch {
+      triggerError("Could not submit your enquiry right now. Please try again or contact us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setStep(0);
+    setPrivacyAgreed(false);
+    setIsSubmitting(false);
+    setIsSubmitted(false);
     setEnqType("");
     setCname("");
     setConame("");
@@ -1072,37 +1126,11 @@ export default function CrmForm() {
             })}
           </div>
 
-          {/* Privacy Policy & Terms Agreement Checkbox */}
-          <div className="pt-2">
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs text-luxury-text-secondary select-none">
-              <input
-                type="checkbox"
-                checked={privacyAgreed}
-                onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                className="w-4 h-4 rounded-xs border-white/20 bg-black/40 text-luxury-accent focus:ring-luxury-accent focus:ring-offset-0 cursor-pointer accent-[#d4af37]"
-              />
-              <span className="leading-snug text-[11px]">
-                I agree to the{" "}
-                <button
-                  type="button"
-                  onClick={() => setPrivacyModalOpen(true)}
-                  className="text-luxury-accent hover:underline font-semibold cursor-pointer underline-offset-2"
-                >
-                  Privacy Policy &amp; Terms
-                </button>
-              </span>
-            </label>
-          </div>
-
           <div className="pt-2">
             <button
               type="button"
               onClick={handleNextStep0}
-              className={`w-full py-4 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 transition-all duration-300 rounded-sm ${
-                privacyAgreed
-                  ? "luxury-btn cursor-pointer shadow-lg"
-                  : "bg-white/5 border border-white/10 text-luxury-text-secondary cursor-not-allowed opacity-60 hover:border-red-500/30"
-              }`}
+              className="w-full py-4 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 transition-all duration-300 rounded-sm luxury-btn cursor-pointer shadow-lg"
             >
               Continue to Details <ArrowRight className="w-4 h-4" />
             </button>
@@ -1239,10 +1267,11 @@ export default function CrmForm() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                    Capacity (kg)
+                    Capacity (kg) *
                   </label>
                   <input
                     type="number"
+                    required
                     min="0"
                     placeholder="e.g. 630"
                     value={capKg}
@@ -1256,7 +1285,7 @@ export default function CrmForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                    Door Type
+                    Door Type *
                   </label>
                   <select
                     value={doorType}
@@ -1272,7 +1301,7 @@ export default function CrmForm() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                    Machine Room
+                    Machine Room *
                   </label>
                   <select
                     value={mr}
@@ -1356,6 +1385,7 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="date"
+                    min={todayStr}
                     value={compDate}
                     onChange={(e) => setCompDate(e.target.value)}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
@@ -1462,6 +1492,7 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="date"
+                    min={todayStr}
                     value={mDate}
                     onChange={(e) => setMDate(e.target.value)}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none"
@@ -1568,6 +1599,7 @@ export default function CrmForm() {
                   </label>
                   <input
                     type="date"
+                    max={todayStr}
                     value={sLastDate}
                     onChange={(e) => setSLastDate(e.target.value)}
                     className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none text-luxury-text-secondary"
@@ -2181,7 +2213,7 @@ export default function CrmForm() {
             </div>
           </div>
 
-          {/* Actions Bar */}
+          {/* Secondary Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-white/5 relative z-10">
             <button
               type="button"
@@ -2200,14 +2232,68 @@ export default function CrmForm() {
             >
               <RotateCcw className="w-4 h-4" /> New Enquiry
             </button>
-            <button
-              type="button"
-              onClick={handleDownloadPDF}
-              className="flex-1 luxury-btn text-xs uppercase tracking-widest py-4 rounded-sm flex items-center justify-center gap-2 font-semibold shadow-lg cursor-pointer"
-            >
-              <FileText className="w-4 h-4" /> Download PDF Report
-            </button>
           </div>
+
+          {/* Submission Panel */}
+          {!isSubmitted ? (
+            <div className="space-y-4 pt-2 relative z-10">
+              <label className="flex items-center gap-2.5 cursor-pointer text-xs text-luxury-text-secondary select-none">
+                <input
+                  type="checkbox"
+                  checked={privacyAgreed}
+                  onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                  className="w-4 h-4 rounded-xs border-white/20 bg-black/40 text-luxury-accent focus:ring-luxury-accent focus:ring-offset-0 cursor-pointer accent-[#d4af37]"
+                />
+                <span className="leading-snug text-[11px]">
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={() => setPrivacyModalOpen(true)}
+                    className="text-luxury-accent hover:underline font-semibold cursor-pointer underline-offset-2"
+                  >
+                    Privacy Policy &amp; Terms
+                  </button>
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleSubmitEnquiry}
+                disabled={isSubmitting}
+                className={`w-full py-4 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 transition-all duration-300 rounded-sm ${
+                  isSubmitting
+                    ? "bg-white/5 border border-white/10 text-luxury-text-secondary cursor-wait"
+                    : "luxury-btn cursor-pointer shadow-lg"
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Submitting Enquiry...
+                  </>
+                ) : (
+                  <>
+                    Submit Enquiry <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2 relative z-10">
+              <div className="p-4 rounded-sm border border-emerald-500/30 bg-emerald-950/30 flex items-center gap-3 text-emerald-300 text-xs font-medium">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>
+                  Enquiry submitted successfully. Our technical desk has received Ref {reportRef} and will get in touch shortly.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                className="w-full luxury-btn text-xs uppercase tracking-widest py-4 rounded-sm flex items-center justify-center gap-2 font-semibold shadow-lg cursor-pointer"
+              >
+                <FileText className="w-4 h-4" /> Download PDF Report
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
