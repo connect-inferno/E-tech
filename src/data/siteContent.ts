@@ -463,7 +463,7 @@ export const siteContent = {
       "Chhatrapati Sambhajinagar",
       "Kolhapur",
     ],
-    googleMapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d242117.70906803713!2d73.69815413158021!3d18.524564858925575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bf2e67461101%3A0x828d43bf9d363f6b!2sPune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+    googleMapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3833.7299336249!2d73.516612003307!3d17.77043856567735!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2b70009f8f287%3A0x938a74fc1d7414fc!2sLove%20Spring%20Society!5e0!3m2!1sen!2sin!4v1787475352486!5m2!1sen!2sin",
   },
   footer: {
     disclaimer: "© 2026 E Tech Elevators. All Rights Reserved. ISO Certified · Serving Maharashtra since 2019.",
