@@ -8,6 +8,7 @@ import { siteContent, ProductItem } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight, Sparkles, Box, ListChecks, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -299,20 +300,13 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={() => {
-                      setSelectedProduct(null);
-                      const contactSection = document.getElementById("contact");
-                      if (contactSection) {
-                        contactSection.scrollIntoView({ behavior: "smooth" });
-                      } else {
-                        window.location.href = "/#contact";
-                      }
-                    }}
-                    className="luxury-btn flex-1 text-center py-3 text-xs uppercase tracking-[0.2em] font-medium"
+                  <Link
+                    href="/contact"
+                    onClick={() => setSelectedProduct(null)}
+                    className="luxury-btn flex-1 text-center py-3 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center"
                   >
                     Request Technical Specs
-                  </button>
+                  </Link>
                   <button
                     onClick={() => setSelectedProduct(null)}
                     className="border border-white/10 hover:bg-white/5 transition-all rounded-sm flex-1 text-center py-3 text-xs text-luxury-text-primary uppercase tracking-[0.2em] font-medium"
@@ -424,19 +418,12 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  const contactSection = document.getElementById("contact");
-                  if (contactSection) {
-                    contactSection.scrollIntoView({ behavior: "smooth" });
-                  } else {
-                    window.location.href = "/#contact";
-                  }
-                }}
-                className="luxury-btn w-full text-center py-4 text-xs uppercase tracking-[0.25em] font-medium flex items-center justify-center gap-2 mt-6"
+              <Link
+                href="/contact"
+                className="luxury-btn w-full text-center py-4 text-xs uppercase tracking-[0.25em] font-medium flex items-center justify-center gap-2 mt-6 cursor-pointer"
               >
                 Request Custom Spec Quote <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              </Link>
             </div>
 
             {/* Styling Mock Cabin Visual representation (right 7 cols) */}
