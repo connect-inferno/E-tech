@@ -5,8 +5,9 @@ import { siteContent, ProjectItem } from "@/data/siteContent";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "framer-motion";
-import { MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { useLenisInstance } from "@/components/SmoothScrollProvider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -33,6 +34,42 @@ const PROJECT_IMAGES: Record<string, string> = {
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
+  const lenis = useLenisInstance();
+
+  useEffect(() => {
+    if (selectedProject) {
+      lenis?.stop();
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+
+      const handleWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+      const handleTouch = (e: TouchEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      window.addEventListener("wheel", handleWheel, { passive: false });
+      window.addEventListener("touchmove", handleTouch, { passive: false });
+
+      return () => {
+        lenis?.start();
+        document.body.style.overflow = originalBodyOverflow || "unset";
+        document.documentElement.style.overflow = originalHtmlOverflow || "unset";
+        window.removeEventListener("wheel", handleWheel);
+        window.removeEventListener("touchmove", handleTouch);
+      };
+    } else {
+      lenis?.start();
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    }
+  }, [selectedProject, lenis]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -103,9 +140,8 @@ export default function Projects() {
               <button
                 key={category}
                 onClick={() => setActiveFilter(category)}
-                className={`px-4 py-2 text-[10px] uppercase tracking-[0.25em] transition-all duration-300 relative focus:outline-none ${
-                  activeFilter === category ? "text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-text-primary"
-                }`}
+                className={`px-4 py-2 text-[10px] uppercase tracking-[0.25em] transition-all duration-300 relative focus:outline-none ${activeFilter === category ? "text-luxury-accent" : "text-luxury-text-secondary hover:text-luxury-text-primary"
+                  }`}
               >
                 {category}
                 {activeFilter === category && (
@@ -126,7 +162,7 @@ export default function Projects() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[500px]"
         >
           <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project: ProjectItem, idx) => {
+            {filteredProjects.map((project: ProjectItem) => {
               const heightClass = "aspect-[4/5]";
 
               return (
@@ -137,6 +173,7 @@ export default function Projects() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
+                  onClick={() => setSelectedProject(project)}
                   className={`group relative ${heightClass} bg-luxury-card border border-white/5 overflow-hidden rounded-sm cursor-pointer select-none`}
                 >
                   {/* Subtle corner light reflection */}
@@ -157,19 +194,13 @@ export default function Projects() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-70 group-hover:opacity-85 transition-opacity duration-500 z-10" />
 
                   {/* Text Details Overlay (Bottom aligned) */}
-                  <div className="absolute inset-x-0 bottom-0 p-8 z-20 flex flex-col justify-end space-y-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                  <div className="absolute inset-x-0 bottom-0 p-8 z-20 flex flex-col justify-end space-y-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
                     <span className="text-[9px] uppercase tracking-[0.25em] text-luxury-accent font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-75">
                       {project.category}
                     </span>
                     <h3 className="text-lg md:text-xl font-heading font-light tracking-wide text-luxury-text-primary leading-tight">
                       {project.title}
                     </h3>
-                    
-                    {/* Location detail */}
-                    <div className="flex items-center gap-2 text-luxury-text-secondary text-xs font-light opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150">
-                      <MapPin className="w-3.5 h-3.5 text-luxury-accent" />
-                      <span>{project.location}</span>
-                    </div>
                   </div>
                 </motion.div>
               );
@@ -177,6 +208,75 @@ export default function Projects() {
           </AnimatePresence>
         </motion.div>
       </div>
+
+      {/* Project Details Modal (Static, Non-scrollable) */}
+      {selectedProject && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in select-none overflow-hidden overscroll-none"
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className="relative bg-luxury-card border border-white/10 rounded-sm w-full max-w-xl flex flex-col overflow-hidden shadow-2xl">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedProject(null)}
+              className="absolute top-4 right-4 text-luxury-text-secondary hover:text-luxury-accent transition-colors text-2xl font-light focus:outline-none z-10 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            {/* Static Content (No Scrolling) */}
+            <div className="p-6 md:p-7 space-y-4">
+              {/* Header / Title */}
+              <div className="space-y-1.5 pr-8">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-luxury-accent font-semibold">
+                  {selectedProject.category}
+                </span>
+                <h2 className="text-xl md:text-2xl font-heading font-light tracking-tight text-luxury-text-primary">
+                  {selectedProject.title}
+                </h2>
+                <div className="w-12 h-[1px] bg-luxury-accent/30 mt-2" />
+              </div>
+
+              {/* Image below Title */}
+              <div className="relative aspect-[16/10] max-h-[300px] w-full rounded-sm overflow-hidden border border-white/10 shadow-2xl">
+                <img
+                  src={PROJECT_IMAGES[selectedProject.id] || PROJECT_IMAGES.p1}
+                  alt={selectedProject.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-4 md:px-7 md:py-5 border-t border-white/10 bg-luxury-card shrink-0 rounded-b-sm">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedProject(null);
+                    const contactSection = document.getElementById("contact");
+                    if (contactSection) {
+                      contactSection.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      window.location.href = "/#contact";
+                    }
+                  }}
+                  className="luxury-btn flex-1 text-center py-3 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Inquire for Similar Setup <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="border border-white/10 hover:bg-white/5 transition-all rounded-sm flex-1 text-center py-3 text-xs text-luxury-text-primary uppercase tracking-[0.2em] font-medium cursor-pointer"
+                >
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

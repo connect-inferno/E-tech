@@ -51,14 +51,14 @@ export interface CoreValueItem {
 export const siteContent = {
   metadata: {
     title: "E TECH ELEVATORS | Elevating Safety, Reliability & Trust",
-    description: "ISO-certified elevator installation, AMC, modernization and 24/7 breakdown support across Maharashtra. Based in Pune, serving 500+ lifts with 120+ active AMC clients.",
+    description: "ISO-certified elevator installation, PWD Certified, AMC, modernization and 24/7 breakdown support across Maharashtra. Based in Pune, serving 500+ lifts with 120+ active AMC clients.",
   },
   company: {
     name: "E TECH ELEVATORS",
     tagline: "Elevating Safety, Reliability & Trust",
     logoText: "E TECH",
     ctaText: "Get Quote",
-    certifications: `ISO Certified · ${new Date().getFullYear() - 2019}+ Years of Excellence · Maharashtra Operations`,
+    certifications: `ISO Certified · PWD Certified · ${new Date().getFullYear() - 2019}+ Years of Excellence · Maharashtra Operations`,
     founded: 2019,
     headquarters: "Pune, Maharashtra",
     employees: "25+",
@@ -89,7 +89,7 @@ export const siteContent = {
     phase4: {
       title: "Precision Engineering",
       features: [
-        "15-minute emergency response",
+        "20-30 minutes emergency response",
         "100% Genuine OEM Spare Parts",
         "Factory-Trained Engineers",
         "Digital Service Reporting",
@@ -106,7 +106,7 @@ export const siteContent = {
     title: "The Standard of Reliable Elevation",
     subtitle: "About Us",
     storyTitle: "A Message from Our Leadership",
-    storyParagraph1: "Dear Valued Clients, Partners,\n\nIt is with immense pride and gratitude that I welcome you to E Tech Elevators — a company built on trust, safety, and engineering excellence. Since our founding in 2019, we have grown from a Pune-based service provider into one of Maharashtra's most respected elevator companies, today serving 120+ active AMC clients and 500+ lifts under maintenance across the region.",
+    storyParagraph1: "Dear Valued Clients, Partners,\n\nIt is with immense pride and gratitude that I welcome you to E Tech Elevators — a company built on trust, safety, and engineering excellence. Since our founding in 2019, we have grown from a Pune-based service provider into one of Maharashtra's most respected elevator companies, today serving 100+ active AMC clients and 500+ lifts under maintenance across the region.",
     storyParagraph2: "Our journey has been driven by one core belief: every person who steps into an elevator deserves the highest standard of safety and reliability. This belief shapes every decision we make — from the 100% genuine OEM parts we install, to the factory-trained engineers who service them, to the transparent digital reports we deliver to every client.",
     missionTitle: "Our Mission",
     missionText: "Provide superior elevator services with fast response times, high safety standards, and transparent reporting to every building we serve.",
@@ -114,7 +114,7 @@ export const siteContent = {
     visionText: "To become India's most trusted elevator service company by delivering world-class safety, reliability, and innovation.",
     stats: [
       { value: "500+", number: 500, suffix: "+", label: "Lifts Under Maintenance" },
-      { value: "120+", number: 120, suffix: "+", label: "Active AMC Clients" },
+      { value: "100+", number: 100, suffix: "+", label: "Active AMC Clients" },
       { value: "94%", number: 94, suffix: "%", label: "First-Time Fix Rate" },
       { value: "24/7", number: 24, suffix: "/7", label: "Emergency Support" },
     ] as StatItem[],
@@ -122,7 +122,7 @@ export const siteContent = {
       { title: "Safety", description: "Every decision, every install, every service call starts with safety first.", iconName: "ShieldCheck" },
       { title: "Quality", description: "100% genuine OEM parts, factory-trained engineers, IS:14665 and ISO 9001:2015 aligned processes.", iconName: "Award" },
       { title: "Innovation", description: "Digital service reporting and smart monitoring so clients see everything we do.", iconName: "Cpu" },
-      { title: "Reliability", description: "94% first-time fix rate and a 15-minute emergency response commitment.", iconName: "Zap" },
+      { title: "Reliability", description: "94% first-time fix rate and a 20-30 minute emergency response commitment.", iconName: "Zap" },
       { title: "Customer First", description: "Transparent quarterly and annual reports — no hidden work, no hidden costs.", iconName: "Headphones" },
     ] as CoreValueItem[],
     milestones: [
@@ -130,8 +130,8 @@ export const siteContent = {
       { year: "2020", title: "100+ AMC clients onboarded" },
       { year: "2021", title: "Installation & Modernization divisions launched" },
       { year: "2022", title: "ISO Certification achieved" },
-      { year: "2024", title: "500+ AMC contracts under maintenance" },
-      { year: "2025", title: "Expansion to Pimpri-Chinchwad & Nashik" },
+      { year: "2024", title: "100+ AMC contracts under maintenance" },
+      { year: "2025", title: "Expansion to Sambhajinagar, Nashik & Kolhapur" },
       { year: "2026", title: "Pan-Maharashtra expansion" },
     ] as MilestoneItem[],
     performance: [
@@ -171,20 +171,20 @@ export const siteContent = {
         image: "mrl",
       },
       {
-        id: "escalator",
-        title: "Escalators",
-        description: "Heavy-duty continuous moving staircases for commercial malls and transit hubs.",
-        longDescription: "Engineered with energy-efficient step drive systems, slip-resistant stainless steel treads, and multi-layered safety sensors for high-traffic commercial spaces.",
-        features: ["High-traffic capacity", "Comb-plate safety sensors", "Energy-saving standby mode"],
-        image: "escalator",
+        id: "home",
+        title: "Home Lifts",
+        description: "Compact, quiet, luxury-tailored elevators designed for private villas.",
+        longDescription: "Minimal headroom and pit-depth requirements make these ideal for retrofits into existing homes without major structural work.",
+        features: ["No major structural modifications", "Single-phase power compatibility", "Custom bespoke design"],
+        image: "home",
       },
       {
-        id: "traveleator",
-        title: "Traveleators / Moving Walkways",
-        description: "Inclined and horizontal moving walkways for effortless pedestrian transport.",
-        longDescription: "Smooth, continuous inclined and flat walkways designed for moving passengers with shopping carts, luggage, and heavy foot traffic safely over long distances.",
-        features: ["Horizontal & inclined options", "Pallet-locking mechanism", "Quiet VVVF drive operation"],
-        image: "traveleator",
+        id: "hospital",
+        title: "Hospital Lifts",
+        description: "Heavy-duty bed elevators focused on care, hygiene and reliability.",
+        longDescription: "Engineered with accurate deck-leveling, extra-wide entrances and priority emergency routing for patient movement.",
+        features: ["Accurate deck-leveling", "Hygienic stainless-steel walls", "Priority emergency routing"],
+        image: "hospital",
       },
       {
         id: "hydraulic",
@@ -195,12 +195,12 @@ export const siteContent = {
         image: "hydraulic",
       },
       {
-        id: "hospital",
-        title: "Hospital Lifts",
-        description: "Heavy-duty bed elevators focused on care, hygiene and reliability.",
-        longDescription: "Engineered with accurate deck-leveling, extra-wide entrances and priority emergency routing for patient movement.",
-        features: ["Accurate deck-leveling", "Hygienic stainless-steel walls", "Priority emergency routing"],
-        image: "hospital",
+        id: "capsule",
+        title: "Capsule Lifts",
+        description: "Panoramic vertical capsules that turn transit into an architectural feature.",
+        longDescription: "Designed for malls, premium hotels, and showroom lobbies where the lift itself is part of the design language.",
+        features: ["Panoramic glass views", "Pneumatic or gearless drive", "Ambient base lighting"],
+        image: "capsule",
       },
       {
         id: "goods",
@@ -219,21 +219,22 @@ export const siteContent = {
         image: "car",
       },
       {
-        id: "home",
-        title: "Home Lifts",
-        description: "Compact, quiet, luxury-tailored elevators designed for private villas.",
-        longDescription: "Minimal headroom and pit-depth requirements make these ideal for retrofits into existing homes without major structural work.",
-        features: ["No major structural modifications", "Single-phase power compatibility", "Custom bespoke design"],
-        image: "home",
+        id: "escalator",
+        title: "Escalators",
+        description: "Heavy-duty continuous moving staircases for commercial malls and transit hubs.",
+        longDescription: "Engineered with energy-efficient step drive systems, slip-resistant stainless steel treads, and multi-layered safety sensors for high-traffic commercial spaces.",
+        features: ["High-traffic capacity", "Comb-plate safety sensors", "Energy-saving standby mode"],
+        image: "escalator",
       },
       {
-        id: "capsule",
-        title: "Capsule Lifts",
-        description: "Panoramic vertical capsules that turn transit into an architectural feature.",
-        longDescription: "Designed for malls, premium hotels, and showroom lobbies where the lift itself is part of the design language.",
-        features: ["Panoramic glass views", "Pneumatic or gearless drive", "Ambient base lighting"],
-        image: "capsule",
+        id: "traveleator",
+        title: "Traveleators / Moving Walkways",
+        description: "Inclined and horizontal moving walkways for effortless pedestrian transport.",
+        longDescription: "Smooth, continuous inclined and flat walkways designed for moving passengers with shopping carts, luggage, and heavy foot traffic safely over long distances.",
+        features: ["Horizontal & inclined options", "Pallet-locking mechanism", "Quiet VVVF drive operation"],
+        image: "traveleator",
       },
+    
     ] as ProductItem[],
   },
   services: {
@@ -344,20 +345,6 @@ export const siteContent = {
     categories: ["All", "Residential", "Commercial", "Healthcare"],
     items: [
       {
-        id: "p1",
-        title: "Adhya Rohan Residency",
-        category: "Residential",
-        location: "Pune, MH",
-        image: "p1"
-      },
-      {
-        id: "p2",
-        title: "Swaraj Residency",
-        category: "Residential",
-        location: "Pune, MH",
-        image: "p2"
-      },
-      {
         id: "p3",
         title: "Pristine Greens",
         category: "Residential",
@@ -370,6 +357,49 @@ export const siteContent = {
         category: "Residential",
         location: "Mahalunge, Pune",
         image: "p4"
+      },
+      
+      {
+        id: "p12",
+        title: "R Deccan Mall",
+        category: "Commercial",
+        location: "Deccan Gymkhana, Pune",
+        image: "p12"
+      },
+       {
+        id: "p13",
+        title: "Vasant Center",
+        category: "Commercial",
+        location: "Pune",
+        image: "p13"
+      },
+      {
+        id: "p14",
+        title: "Swaraj Capital Moshi",
+        category: "Commercial",
+        location: "Moshi, Pune",
+        image: "p14"
+      },
+      {
+        id: "p9",
+        title: "Siddhi Multispeciality Hospital",
+        category: "Healthcare",
+        location: "Manchar, Pune",
+        image: "p9"
+      },
+      {
+        id: "p1",
+        title: "Adhya Rohan Residency",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p1"
+      },
+      {
+        id: "p2",
+        title: "Swaraj Residency",
+        category: "Residential",
+        location: "Pune, MH",
+        image: "p2"
       },
       {
         id: "p5",
@@ -400,13 +430,6 @@ export const siteContent = {
         image: "p8"
       },
       {
-        id: "p9",
-        title: "Siddhi Multispeciality Hospital",
-        category: "Healthcare",
-        location: "Manchar, Pune",
-        image: "p9"
-      },
-      {
         id: "p10",
         title: "Sanklecha Mango Woods",
         category: "Residential",
@@ -420,27 +443,8 @@ export const siteContent = {
         location: "Moshi, Pune",
         image: "p11"
       },
-      {
-        id: "p12",
-        title: "R Deccan Mall",
-        category: "Commercial",
-        location: "Deccan Gymkhana, Pune",
-        image: "p12"
-      },
-      {
-        id: "p13",
-        title: "Vasant Center",
-        category: "Commercial",
-        location: "Pune",
-        image: "p13"
-      },
-      {
-        id: "p14",
-        title: "Swaraj Capital Moshi",
-        category: "Commercial",
-        location: "Moshi, Pune",
-        image: "p14"
-      },
+      
+      
     ] as ProjectItem[],
   },
   contact: {
@@ -451,10 +455,12 @@ export const siteContent = {
     info: {
       address: "E Tech Elevator, Pune, Maharashtra – 410505",
       phone: "+91 95884 09957",
-      whatsapp: "+91 90491 14482",
+      phone2: "+91 90491 14482",
+      whatsapp: "+91 95884 09957",
+      whatsapp2: "+91 90491 14482",
       email: "e.tech5534@gmail.com",
       hours: "Mon – Sat: 9:00 AM – 6:30 PM · 24/7 Emergency Line",
-      emergencyPhone: "+91 95884 09957 (24/7 Emergency)",
+      emergencyPhone: "+91 9579972676 (24/7 Emergency)",
     },
     serviceAreas: [
       "Pune",

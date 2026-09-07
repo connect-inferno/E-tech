@@ -23,6 +23,8 @@ export default function Footer() {
   const info = siteContent.contact.info;
   const whatsappDigits = info.whatsapp.replace(/[^\d]/g, "");
   const phoneDigits = info.phone.replace(/\s/g, "");
+  const whatsapp2Digits = info.whatsapp2 ? info.whatsapp2.replace(/[^\d]/g, "") : "";
+  const phone2Digits = info.phone2 ? info.phone2.replace(/\s/g, "") : "";
 
   // A short curated slice of services for the footer column
   const topServices = siteContent.services.items.slice(0, 5);
@@ -50,29 +52,58 @@ export default function Footer() {
 
         {/* Top CTA strip */}
         <div className="mb-14 pb-14 border-b border-white/5 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-7 space-y-2">
+          <div className="lg:col-span-6 space-y-2">
             <span className="text-[10px] uppercase tracking-[0.3em] text-luxury-accent font-semibold">Ready to talk?</span>
             <h3 className="text-2xl md:text-3xl font-heading font-light tracking-tight text-luxury-text-primary leading-tight">
               Get a quote, an AMC review, or emergency service — <span className="text-luxury-accent">reach us directly.</span>
             </h3>
           </div>
-          <div className="lg:col-span-5 flex flex-col sm:flex-row lg:justify-end items-stretch sm:items-center gap-3 shrink-0">
-            <a
-              href={`tel:${phoneDigits}`}
-              className="luxury-btn inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium whitespace-nowrap shrink-0"
-            >
-              <Phone className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap">Call {info.phone}</span>
-            </a>
-            <a
-              href={`https://wa.me/${whatsappDigits}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium border border-luxury-accent/40 text-luxury-accent hover:bg-luxury-accent/10 transition-colors rounded-sm whitespace-nowrap shrink-0"
-            >
-              <WhatsAppIcon className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap">WhatsApp</span>
-            </a>
+          <div className="lg:col-span-6 flex flex-col sm:items-end gap-3 shrink-0">
+            {/* Primary Contact Row */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              <a
+                href={`tel:${phoneDigits}`}
+                className="luxury-btn inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium whitespace-nowrap shrink-0"
+              >
+                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <span className="whitespace-nowrap">Call {info.phone}</span>
+              </a>
+              <a
+                href={`https://wa.me/${whatsappDigits}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium border border-luxury-accent/40 text-luxury-accent hover:bg-luxury-accent/10 transition-colors rounded-sm whitespace-nowrap shrink-0"
+              >
+                <WhatsAppIcon className="w-3.5 h-3.5 shrink-0" />
+                <span className="whitespace-nowrap">WhatsApp</span>
+              </a>
+            </div>
+
+            {/* Secondary Contact Row (Below the first one) */}
+            {(info.phone2 || info.whatsapp2) && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                {info.phone2 && (
+                  <a
+                    href={`tel:${phone2Digits}`}
+                    className="luxury-btn inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium whitespace-nowrap shrink-0"
+                  >
+                    <Phone className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">Call {info.phone2}</span>
+                  </a>
+                )}
+                {info.whatsapp2 && (
+                  <a
+                    href={`https://wa.me/${whatsapp2Digits}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.15em] font-medium border border-luxury-accent/40 text-luxury-accent hover:bg-luxury-accent/10 transition-colors rounded-sm whitespace-nowrap shrink-0"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">WhatsApp</span>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -98,6 +129,9 @@ export default function Footer() {
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-luxury-accent/25 bg-luxury-accent/5 rounded-sm text-[10px] tracking-wider text-luxury-accent">
                 <Award className="w-3 h-3" /> ISO Certified
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-luxury-accent/25 bg-luxury-accent/5 rounded-sm text-[10px] tracking-wider text-luxury-accent">
+                <Award className="w-3 h-3" /> PWD Certified
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-white/10 bg-white/[0.02] rounded-sm text-[10px] tracking-wider text-luxury-text-secondary">
                 <ShieldCheck className="w-3 h-3" /> Since 2019

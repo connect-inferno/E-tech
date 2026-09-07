@@ -178,7 +178,7 @@ export default function AboutPage() {
           </div>
 
           <div className="space-y-8 max-w-4xl mx-auto">
-            {/* Founder & CEO */}
+            {/* 1. Founder & CEO */}
             <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
               <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
                 <img
@@ -207,64 +207,61 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* COO & MD Grid Below Founder */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Shrikant Raundhal / COO */}
-              <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col items-stretch">
-                <div className="w-full aspect-[4/5] relative overflow-hidden shrink-0">
-                  <img
-                    src="/images/shrikant.png"
-                    alt="Shrikant Raundhal"
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="flex flex-col justify-center p-6 space-y-2.5 text-center md:text-left">
-                  <div>
-                    <h3 className="text-lg md:text-xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
-                      Shrikant Raundhal
-                    </h3>
-                    <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
-                      Chief Operating Officer (COO)
-                    </p>
-                  </div>
-                  <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
-                    E-Tech Elevator, Pune, Maharashtra.
-                  </p>
-                  <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
-                  <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
-                    Leading field operations, service execution, technical teams, and ensuring seamless project delivery across Maharashtra.
-                  </p>
-                </div>
+            {/* 2. Managing Director (MD) */}
+            <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
+              <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
+                <img
+                  src="/images/akash.png"
+                  alt="Akash Dokhale"
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
               </div>
+              <div className="w-full md:w-[55%] flex flex-col justify-center p-6 md:p-8 space-y-3 text-center md:text-left">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                    Akash Dokhale
+                  </h3>
+                  <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                    Managing Director (MD)
+                  </p>
+                </div>
+                <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                  E-Tech Elevator, Pune, Maharashtra.
+                </p>
+                <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                  Overseeing strategic growth, client partnerships, modernization portfolio management, and company expansion.
+                </p>
+              </div>
+            </div>
 
-              {/* Akash Dokhale / MD */}
-              <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col items-stretch">
-                <div className="w-full aspect-[4/5] relative overflow-hidden shrink-0">
-                  <img
-                    src="/images/akash.png"
-                    alt="Akash Dokhale"
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="flex flex-col justify-center p-6 space-y-2.5 text-center md:text-left">
-                  <div>
-                    <h3 className="text-lg md:text-xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
-                      Akash Dokhale
-                    </h3>
-                    <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
-                      Managing Director (MD)
-                    </p>
-                  </div>
-                  <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
-                    E-Tech Elevator, Pune, Maharashtra.
-                  </p>
-                  <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
-                  <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
-                    Overseeing strategic growth, client partnerships, modernization portfolio management, and company expansion.
+            {/* 3. Chief Operating Officer (COO) */}
+            <div className="group border border-white/5 bg-luxury-card rounded-sm transition-all duration-500 hover:border-luxury-accent/30 hover:bg-luxury-card-hover overflow-hidden flex flex-col md:flex-row items-stretch">
+              <div className="w-full md:w-[45%] aspect-[4/5] relative overflow-hidden shrink-0">
+                <img
+                  src="/images/shrikant.png"
+                  alt="Shrikant Raundhal"
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div className="w-full md:w-[55%] flex flex-col justify-center p-6 md:p-8 space-y-3 text-center md:text-left">
+                <div>
+                  <h3 className="text-xl md:text-2xl font-heading font-light text-luxury-text-primary tracking-wide mb-1">
+                    Shrikant Raundhal
+                  </h3>
+                  <p className="text-xs uppercase tracking-wider text-luxury-accent font-semibold">
+                    Chief Operating Officer (COO)
                   </p>
                 </div>
+                <p className="text-[10px] text-luxury-text-secondary uppercase tracking-widest leading-relaxed font-medium">
+                  E-Tech Elevator, Pune, Maharashtra.
+                </p>
+                <div className="w-12 h-[1px] bg-luxury-accent/20 mx-auto md:mx-0 pt-1" />
+                <p className="text-xs text-luxury-text-secondary leading-relaxed font-light">
+                  Leading field operations, service execution, technical teams, and ensuring seamless project delivery across Maharashtra.
+                </p>
               </div>
             </div>
           </div>

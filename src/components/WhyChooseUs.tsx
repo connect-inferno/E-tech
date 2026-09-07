@@ -74,7 +74,14 @@ export default function WhyChooseUs() {
         },
       });
 
-      tl.to(node, { scale: 1.3, backgroundColor: "var(--color-luxury-accent)", borderColor: "var(--color-luxury-accent)", duration: 0.4, ease: "back.out(1.7)" })
+      tl.to(node, {
+        scale: 1.2,
+        backgroundColor: "rgba(212, 175, 55, 0.3)",
+        borderColor: "rgba(212, 175, 55, 0.7)",
+        boxShadow: "0 0 16px rgba(212, 175, 55, 0.4)",
+        duration: 0.4,
+        ease: "back.out(1.7)",
+      })
         .fromTo(content, { opacity: 0, x: (item.classList.contains("lg:flex-row-reverse") ? 30 : -30) }, { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, "-=0.2")
         .to(index, { color: "var(--color-luxury-text-primary)", duration: 0.3 }, "-=0.4");
     });
@@ -117,7 +124,7 @@ export default function WhyChooseUs() {
           {/* Active Vertical Line (GSAP Driven Progress) */}
           <div
             ref={lineRef}
-            className="absolute left-4 lg:left-1/2 -translate-x-1/2 top-0 w-[1px] bg-luxury-accent origin-top scale-y-0 h-full shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+            className="absolute left-4 lg:left-1/2 -translate-x-1/2 top-0 w-[1px] bg-luxury-accent/70 origin-top scale-y-0 h-full shadow-[0_0_8px_rgba(212,175,55,0.3)]"
           />
 
           {/* Timeline Items */}
@@ -129,12 +136,17 @@ export default function WhyChooseUs() {
               return (
                 <div
                   key={item.id}
-                  className={`timeline-item relative flex flex-col lg:flex-row items-start lg:items-center ${
-                    isEven ? "" : "lg:flex-row-reverse"
-                  } w-full pl-10 lg:pl-0 select-none`}
+                  className={`timeline-item relative flex flex-col lg:flex-row items-start lg:items-center ${isEven ? "" : "lg:flex-row-reverse"
+                    } w-full pl-10 lg:pl-0 select-none`}
                 >
-                  {/* Central Node Indicator */}
-                  <div className="absolute left-4 lg:left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border border-white/20 bg-luxury-bg timeline-node z-20 transition-all duration-300 shadow-[0_0_6px_rgba(0,0,0,0.8)]" />
+                  {/* Central Node Indicator (Matching Reference Image) */}
+                  <div className="absolute left-4 lg:left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center pointer-events-none">
+                    {/* Outer Translucent Halo */}
+                    <div className="timeline-node w-6 h-6 rounded-full flex items-center justify-center bg-luxury-accent/20 border border-luxury-accent/40 shadow-[0_0_10px_rgba(212,175,55,0.2)] transition-all duration-300">
+                      {/* Inner Solid Gold Dot */}
+                      <div className="w-2.5 h-2.5 rounded-full bg-luxury-accent shadow-[0_0_6px_rgba(212,175,55,0.8)]" />
+                    </div>
+                  </div>
 
                   {/* Left/Right Content Block */}
                   <div className="w-full lg:w-1/2 lg:px-12 timeline-content opacity-0">
