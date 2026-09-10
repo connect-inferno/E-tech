@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { siteContent } from "@/data/siteContent";
+import LocationPicker, { LocationValue } from "@/components/LocationPicker";
 
 // E-Tech's WhatsApp Business number — digits only.
 const ETECH_WHATSAPP = siteContent.contact.info.whatsapp.replace(/[^\d]/g, "");
@@ -104,6 +105,8 @@ export default function CrmForm() {
   const [email, setEmail] = useState("");
   const [pname, setPname] = useState("");
   const [ploc, setPloc] = useState("");
+  const [plat, setPlat] = useState<number | null>(null);
+  const [plng, setPlng] = useState<number | null>(null);
   const [btype, setBtype] = useState("");
   const [bstatus, setBstatus] = useState("");
   const [floors, setFloors] = useState("");
@@ -168,6 +171,10 @@ export default function CrmForm() {
       triggerError("Please enter a valid Project Site / City Location");
       return;
     }
+    if (plat == null || plng == null) {
+      triggerError("Please search or drag the pin to select your exact location on the map");
+      return;
+    }
     if (!btype) {
       triggerError("Please select a building type");
       return;
@@ -218,6 +225,8 @@ export default function CrmForm() {
         email: cleanEmail,
         projectName: cleanPname,
         location: cleanPloc,
+        latitude: plat != null ? plat.toFixed(6) : "",
+        longitude: plng != null ? plng.toFixed(6) : "",
         buildingType: btype,
         buildingStatus: bstatus,
         floors: floors || "—",
@@ -245,6 +254,8 @@ export default function CrmForm() {
     setEmail("");
     setPname("");
     setPloc("");
+    setPlat(null);
+    setPlng(null);
     setBtype("");
     setBstatus("");
     setFloors("");
@@ -423,32 +434,31 @@ export default function CrmForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                Project Name
-              </label>
-              <input
-                type="text"
-                placeholder="Building / Project Name"
-                value={pname}
-                onChange={(e) => setPname(e.target.value)}
-                className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
-                Location *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="City, State"
-                value={ploc}
-                onChange={(e) => setPloc(e.target.value)}
-                className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
+              Project Name
+            </label>
+            <input
+              type="text"
+              placeholder="Building / Project Name"
+              value={pname}
+              onChange={(e) => setPname(e.target.value)}
+              className="w-full bg-black/40 border border-white/5 rounded-sm p-3 text-xs text-luxury-text-primary focus:outline-none focus:border-luxury-accent focus:ring-1 focus:ring-luxury-accent/30 transition-all"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[9px] uppercase tracking-widest text-luxury-text-secondary font-semibold">
+              Location *
+            </label>
+            <LocationPicker
+              value={{ address: ploc, lat: plat, lng: plng }}
+              onChange={(v: LocationValue) => {
+                setPloc(v.address);
+                setPlat(v.lat);
+                setPlng(v.lng);
+              }}
+            />
           </div>
 
           {/* Section 2: Building Details */}

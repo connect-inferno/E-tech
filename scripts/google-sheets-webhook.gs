@@ -12,24 +12,10 @@
 
 const SHEET_NAME = "Leads";
 
-const COLUMNS = [
-  "date",
-  "refId",
-  "customerName",
-  "company",
-  "mobile",
-  "email",
-  "projectName",
-  "location",
-  "buildingType",
-  "buildingStatus",
-  "floors",
-  "stops",
-  "enquiryType",
-  "liftType",
-  "status",
-];
-
+// Column layout — keep this in sync with the payload built by
+// pushToSheets(...) in CrmForm.tsx's handleSubmit. Row values are built
+// explicitly in doPost() below, not derived from this list — this is just
+// the human-readable header.
 const HEADER_ROW = [
   "Date",
   "Ref ID",
@@ -39,20 +25,23 @@ const HEADER_ROW = [
   "Email",
   "Project Name",
   "Location",
+  "Latitude",
+  "Longitude",
+  "Map Link",
   "Building Type",
   "Building Status",
   "Floors",
   "Stops",
   "Enquiry Type",
-  "Lift Type",
+  "Notes",
   "Status",
   "Received At",
 ];
 
-// Sheets auto-parses any cell starting with "+" as a formula (mobile numbers
-// are stored as "+91 98765..."), which yields #ERROR! instead of the number.
-// Force that column to plain text so it's stored verbatim.
-const MOBILE_COLUMN_INDEX = COLUMNS.indexOf("mobile") + 1;
+// "Mobile" is column E (1-based). Sheets auto-parses any cell starting with
+// "+" as a formula (mobile numbers are stored as "+91 98765..."), which
+// yields #ERROR! instead of the number — force that column to plain text.
+const MOBILE_COLUMN_INDEX = 5;
 
 function doPost(e) {
   try {
@@ -60,8 +49,31 @@ function doPost(e) {
     const sheet = getSheet_();
     ensureHeader_(sheet);
 
-    const row = COLUMNS.map((key) => payload[key] || "");
-    row.push(new Date());
+    const lat = payload.latitude;
+    const lng = payload.longitude;
+    const mapLink = lat && lng ? `=HYPERLINK("https://www.google.com/maps?q=${lat},${lng}","Open in Maps")` : "";
+
+    const row = [
+      payload.date || "",
+      payload.refId || "",
+      payload.customerName || "",
+      payload.company || "",
+      payload.mobile || "",
+      payload.email || "",
+      payload.projectName || "",
+      payload.location || "",
+      lat || "",
+      lng || "",
+      mapLink,
+      payload.buildingType || "",
+      payload.buildingStatus || "",
+      payload.floors || "",
+      payload.stops || "",
+      payload.enquiryType || "",
+      payload.notes || "",
+      payload.status || "",
+      new Date(),
+    ];
 
     const newRowIndex = sheet.getLastRow() + 1;
     sheet.getRange(newRowIndex, MOBILE_COLUMN_INDEX).setNumberFormat("@");
