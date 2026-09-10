@@ -329,7 +329,7 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="p-6 bg-luxury-card border border-white/5 rounded-sm space-y-2">
-                <h4 className="text-sm font-heading font-normal text-luxury-text-primary">15-Minute Emergency Response</h4>
+                <h4 className="text-sm font-heading font-normal text-luxury-text-primary">20-30 Minute Emergency Response</h4>
                 <p className="text-xs text-luxury-text-secondary font-light leading-relaxed">
                   Dedicated 24/7 dispatch line with on-call engineers across the Maharashtra service region.
                 </p>

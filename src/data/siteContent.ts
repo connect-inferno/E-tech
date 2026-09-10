@@ -262,7 +262,7 @@ export const siteContent = {
       {
         id: "breakdown",
         title: "Breakdown Maintenance",
-        description: "24/7 emergency dispatch with a 15-minute response commitment. On-call engineers, genuine OEM parts.",
+        description: "24/7 emergency dispatch with a 20-30 minute response commitment. On-call engineers, genuine OEM parts.",
         icon: "PhoneCall",
       },
       {
@@ -297,7 +297,7 @@ export const siteContent = {
     items: [
       {
         id: "response",
-        title: "15-Minute Emergency Response",
+        title: "20-30 Minute Emergency Response",
         description: "Dedicated dispatch line and on-call engineers for breakdown calls, 24/7 across our service region.",
         iconName: "Zap",
       },

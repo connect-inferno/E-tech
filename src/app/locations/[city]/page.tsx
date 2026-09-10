@@ -27,7 +27,7 @@ const LOCATION_DATA: Record<string, CityInfo> = {
     tagline: "Premier Elevator Installation & 24/7 Maintenance in Pune",
     description: "E-Tech Elevators provides ISO 9001:2015 certified elevator installation, preventative AMC, breakdown response, and high-speed passenger lift modernization across Pune.",
     highlights: [
-      "15-Minute Rapid Emergency Breakdown Response in Pune Central",
+      "20-30 Minute Rapid Emergency Breakdown Response in Pune Central",
       "Specialized High-Rise Passenger & Commercial MRL Elevators",
       "Comprehensive Annual Maintenance Contracts (AMC) with OEM Spares",
       "Compliance with IS 14665 & Maharashtra Lift Rules",

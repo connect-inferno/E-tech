@@ -172,7 +172,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-red-500 font-semibold">24/7 Breakdown Hotline</h4>
-                  <p className="text-[10px] text-luxury-text-secondary font-light">15-minute emergency response</p>
+                  <p className="text-[10px] text-luxury-text-secondary font-light">20-30 minute emergency response</p>
                 </div>
               </div>
               <a
