@@ -253,7 +253,7 @@ export default function ProjectsPage() {
                     if (contactSection) {
                       contactSection.scrollIntoView({ behavior: "smooth" });
                     } else {
-                      window.location.href = "/#contact";
+                      window.location.href = "/contact";
                     }
                   }}
                   className="luxury-btn flex-1 text-center py-3 text-xs uppercase tracking-[0.2em] font-medium flex items-center justify-center gap-2 cursor-pointer"
