@@ -15,6 +15,10 @@ if (typeof window !== "undefined") {
 const MOBILE_VIDEO_SRC = "/images/elevator-allkeyframe-mobile.mp4";
 const DESKTOP_VIDEO_SRC = "/images/elevator-allkeyframe-desktop_gwr_ai.mp4";
 
+// Must match CACHE_NAME in public/sw.js — both read/write the same
+// Cache Storage bucket so whichever one populates it first "wins".
+const VIDEO_CACHE_NAME = "etch-video-cache-v4";
+
 type DeviceTier = "" | "mobile" | "desktop";
 
 export default function HeroSequence() {
@@ -61,10 +65,10 @@ export default function HeroSequence() {
 
     let isCancelled = false;
     let duration = 10; // Default 10s duration
+    let objectUrlToRevoke: string | null = null;
+    const abortController = new AbortController();
 
-    // Set src based on device tier
-    video.src = tier === "mobile" ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
-    video.load();
+    const videoSrc = tier === "mobile" ? MOBILE_VIDEO_SRC : DESKTOP_VIDEO_SRC;
 
     // ── Preloading engine ────────────────────────────────────────────────────
     const handleProgress = () => {
@@ -83,7 +87,7 @@ export default function HeroSequence() {
       if (video.duration) {
         duration = video.duration;
       }
-      setLoadProgress(30);
+      setLoadProgress((prev) => Math.max(prev, 30));
     };
 
     const handleCanPlayThrough = () => {
@@ -136,6 +140,84 @@ export default function HeroSequence() {
         onReady();
       }
     }, 3500);
+
+    // ── Cache-aware video loading ────────────────────────────────────────────
+    // Downloads (or reads back) the video ourselves during the loading banner
+    // so caching doesn't depend on the service worker having registered and
+    // taken control of the page in time — the very first visit is the one
+    // that most needs this, since the SW can't intercept anything before it's
+    // installed. Falls back to a plain video.src assignment on any failure
+    // (Cache API unavailable, fetch error, quota exceeded, etc.) so playback
+    // never breaks just because caching didn't work.
+    const loadDirect = () => {
+      if (isCancelled) return;
+      video.src = videoSrc;
+      video.load();
+    };
+
+    async function loadVideoWithCache() {
+      if (!video || typeof caches === "undefined") {
+        loadDirect();
+        return;
+      }
+
+      try {
+        const cache = await caches.open(VIDEO_CACHE_NAME);
+        const cachedResponse = await cache.match(videoSrc);
+
+        if (cachedResponse) {
+          const blob = await cachedResponse.blob();
+          if (isCancelled) return;
+          const objectUrl = URL.createObjectURL(blob);
+          objectUrlToRevoke = objectUrl;
+          setLoadProgress((prev) => Math.max(prev, 90));
+          video.src = objectUrl;
+          video.load();
+          return;
+        }
+
+        const response = await fetch(videoSrc, { signal: abortController.signal });
+        if (!response.ok || !response.body) throw new Error("video fetch failed");
+
+        // Clone BEFORE reading either body — Cache API gets an independent
+        // stream over the same network response, so this does not trigger a
+        // second download.
+        const cachePromise = cache.put(videoSrc, response.clone()).catch(() => {});
+
+        const contentLength = Number(response.headers.get("Content-Length")) || 0;
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let receivedBytes = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (isCancelled) {
+            reader.cancel();
+            return;
+          }
+          chunks.push(value);
+          receivedBytes += value.byteLength;
+          if (contentLength) {
+            setLoadProgress((prev) => Math.max(prev, Math.min(90, Math.round((receivedBytes / contentLength) * 90))));
+          }
+        }
+
+        await cachePromise;
+        if (isCancelled) return;
+
+        const blob = new Blob(chunks as BlobPart[], { type: "video/mp4" });
+        const objectUrl = URL.createObjectURL(blob);
+        objectUrlToRevoke = objectUrl;
+        setLoadProgress((prev) => Math.max(prev, 90));
+        video.src = objectUrl;
+        video.load();
+      } catch {
+        loadDirect();
+      }
+    }
+
+    loadVideoWithCache();
 
     // ── Smooth Seek RAF Loop ──────────────────────────────────────────────────
     let targetTime = 0;
@@ -225,6 +307,7 @@ export default function HeroSequence() {
 
     return () => {
       isCancelled = true;
+      abortController.abort();
       clearTimeout(safetyTimer);
       if (rafId) cancelAnimationFrame(rafId);
       video.removeEventListener("progress", handleProgress);
@@ -235,6 +318,9 @@ export default function HeroSequence() {
         animationTimeline.kill();
       }
       document.documentElement.classList.remove("hide-scrollbar");
+      if (objectUrlToRevoke) {
+        URL.revokeObjectURL(objectUrlToRevoke);
+      }
     };
   }, [tier]);
 

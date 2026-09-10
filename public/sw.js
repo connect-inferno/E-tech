@@ -6,11 +6,14 @@
 //
 // Versioning: bump CACHE_NAME to force old caches to be cleared on next visit.
 
-const CACHE_NAME = "etch-video-cache-v3";
+const CACHE_NAME = "etch-video-cache-v4";
 
 // Only intercept these specific video paths (keeps the cache lean)
+// IMPORTANT: keep these in sync with MOBILE_VIDEO_SRC / DESKTOP_VIDEO_SRC
+// in src/components/HeroSequence.tsx — a stale filename here silently
+// disables caching for that tier with no error anywhere.
 const VIDEO_PATTERNS = [
-  "/images/elevator-allkeyframe-desktop.mp4",
+  "/images/elevator-allkeyframe-desktop_gwr_ai.mp4",
   "/images/elevator-allkeyframe-mobile.mp4",
 ];
 

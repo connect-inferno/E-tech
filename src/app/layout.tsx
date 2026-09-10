@@ -128,21 +128,19 @@ export default function RootLayout({
           type="video/mp4"
           media="(max-width: 767px)"
         />
-        {/* Register Service Worker for instant video cache on repeat visits */}
+        {/* Register Service Worker immediately (not deferred to window 'load')
+            so it has the best chance of installing and claiming the page
+            before the hero video's own fetch fires. The hero also caches the
+            video itself via the Cache Storage API directly (see
+            HeroSequence.tsx), so this SW mainly serves as a fallback and
+            handles Range-request slicing for any other direct video src. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                function registerSW() {
-                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                    console.warn('SW registration failed:', err);
-                  });
-                }
-                if (document.readyState === 'complete') {
-                  registerSW();
-                } else {
-                  window.addEventListener('load', registerSW);
-                }
+                navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                  console.warn('SW registration failed:', err);
+                });
               }
             `,
           }}
